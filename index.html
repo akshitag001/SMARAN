@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!--APP-START-->
+<title>Smaran</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap">
+<style>
+/* ── Tokens ─────────────────────────────────────────────
+   Paper: cool register paper, not cream.  Quink: royal-blue fountain-pen ink.
+   Marigold: the one accent, reserved for "look for this" and the register margin.
+   Dark theme is a blackboard, not near-black. */
+:root{
+  --paper:#F3F5F4; --surface:#FFFFFF; --sunk:#E8ECEB; --desk:#E2E7E6;
+  --ink:#18212E; --ink-2:#435064; --ink-3:#5E6878;
+  --rule:#D6DCE1; --rule-strong:#B6BFC8; --ruled:#E3E8EE;
+  --quink:#2A3F9D; --quink-press:#1F3080; --on-quink:#FFFFFF; --quink-wash:#E6EAF8; --quink-text:#2A3F9D;
+  --marigold:#E09C14; --marigold-wash:#FBEFD2; --marigold-ink:#6B4700; --margin:#EDBE55;
+  --done:#2B7446; --done-wash:#E0EFE5; --on-done:#FFFFFF;
+  --f-ui:"Mukta","Noto Sans Devanagari","Noto Sans",system-ui,sans-serif;
+  --f-name:"Tiro Devanagari Hindi","Noto Serif Devanagari","Noto Serif",Georgia,serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141C19; --surface:#1B2521; --sunk:#222D29; --desk:#0E1412;
+    --ink:#E9EDE8; --ink-2:#BAC3BD; --ink-3:#95A09A;
+    --rule:#2D3934; --rule-strong:#45534D; --ruled:#26312D;
+    --quink:#9DAEF5; --quink-press:#B7C4F8; --on-quink:#0F173A; --quink-wash:#232C4B; --quink-text:#AFBDF7;
+    --marigold:#F0B53A; --marigold-wash:#382C12; --marigold-ink:#F6D07D; --margin:#8F6E24;
+    --done:#72C48F; --done-wash:#1C3326; --on-done:#0D2016;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141C19; --surface:#1B2521; --sunk:#222D29; --desk:#0E1412;
+  --ink:#E9EDE8; --ink-2:#BAC3BD; --ink-3:#95A09A;
+  --rule:#2D3934; --rule-strong:#45534D; --ruled:#26312D;
+  --quink:#9DAEF5; --quink-press:#B7C4F8; --on-quink:#0F173A; --quink-wash:#232C4B; --quink-text:#AFBDF7;
+  --marigold:#F0B53A; --marigold-wash:#382C12; --marigold-ink:#F6D07D; --margin:#8F6E24;
+  --done:#72C48F; --done-wash:#1C3326; --on-done:#0D2016;
+  color-scheme:dark;
+}
+
+/* ── Base ── */
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.45 var(--f-ui);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+h1,h2,h3,p,ul,ol,dl,dd{margin:0}
+ul,ol{padding:0;list-style:none}
+h1,h2,h3{text-wrap:balance;line-height:1.2}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:3px solid var(--quink);outline-offset:2px;border-radius:6px}
+.name{font-family:var(--f-name);font-weight:400;letter-spacing:.005em}
+.muted{color:var(--ink-3)}
+.num{font-variant-numeric:tabular-nums}
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.sm{width:18px;height:18px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ── Stage: phone column, with a notes panel beside it on wide screens ── */
+.stage{min-height:100%}
+.side{display:none}
+.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;background:var(--paper);position:relative}
+.app > *{padding-inline:20px}
+main{flex:1;padding-block:8px 28px;display:flex;flex-direction:column;gap:28px}
+@media (min-width:960px){
+  body{background:var(--desk)}
+  .stage{display:grid;grid-template-columns:minmax(300px,380px) 430px;justify-content:center;align-items:start;gap:56px;padding:28px 24px;height:100%}
+  .app{margin:0;height:100%;max-height:900px;overflow-y:auto;border:1px solid var(--rule);border-radius:22px;overscroll-behavior:contain}
+  .side{display:flex;flex-direction:column;gap:26px;padding-top:28px;max-height:100%;overflow-y:auto}
+  .only-mobile{display:none!important}
+}
+
+/* ── Bars ── */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;align-items:center;gap:8px;min-height:60px;border-bottom:1px solid transparent}
+.top.ruled{border-bottom-color:var(--rule)}
+.top .spacer{flex:1}
+.back{display:inline-flex;align-items:center;gap:2px;min-height:48px;margin-left:-10px;padding:0 10px 0 4px;color:var(--quink-text);font-weight:500;border-radius:10px}
+.back:hover{background:var(--quink-wash)}
+.linkbtn{min-height:48px;padding:0 10px;margin-right:-10px;color:var(--quink-text);font-weight:500;border-radius:10px}
+.linkbtn:hover{background:var(--quink-wash)}
+.bar{position:sticky;bottom:0;z-index:5;background:var(--paper);border-top:1px solid var(--rule);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px}
+.tabs{position:sticky;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(3,1fr);padding-block:4px calc(4px + env(safe-area-inset-bottom,0px))}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:58px;justify-content:center;color:var(--ink-3);font-size:14px;font-weight:500;border-radius:12px}
+.tab[aria-current="page"]{color:var(--quink-text)}
+.tab[aria-current="page"] .ic{stroke-width:2.4}
+
+/* ── Buttons ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:60px;border-radius:14px;font-size:19px;font-weight:600;padding:0 20px;transition:background-color .15s}
+.btn-primary{background:var(--quink);color:var(--on-quink)}
+.btn-primary:hover{background:var(--quink-press)}
+.btn-primary:disabled{background:var(--sunk);color:var(--ink-3);cursor:not-allowed}
+.btn-secondary{min-height:52px;font-size:17px;background:var(--surface);border:1.5px solid var(--rule-strong);color:var(--ink)}
+.btn-secondary:hover{border-color:var(--quink)}
+.btn-text{min-height:48px;font-size:17px;font-weight:500;color:var(--quink-text)}
+.btn-text:hover{background:var(--quink-wash)}
+
+/* ── Chips & state markers ── */
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;line-height:1;padding:6px 10px 5px;border-radius:999px;white-space:nowrap}
+.chip-look{background:var(--marigold-wash);color:var(--marigold-ink)}
+.chip-look::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--marigold);flex:none;margin-top:-1px}
+.chip-done{background:var(--done-wash);color:var(--done)}
+.chip-plain{background:var(--sunk);color:var(--ink-2);font-weight:500}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-3);font-weight:500}
+.sync.off{color:var(--marigold-ink)}
+.mk{width:22px;height:22px;border-radius:50%;flex:none;display:inline-grid;place-items:center;margin-top:2px}
+.mk svg{width:14px;height:14px;stroke-width:3}
+.mk-done{background:var(--done);color:var(--on-done)}
+.mk-partly{border:2px solid var(--marigold);background:linear-gradient(90deg,var(--marigold) 50%,transparent 50%)}
+.mk-notyet{border:2px solid var(--ink-3)}
+.mk-pending{border:2px dashed var(--marigold)}
+
+/* ── Stepper (a real sequence, so it is numbered) ── */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;counter-reset:st}
+.steps li{counter-increment:st;font-size:13px;font-weight:500;color:var(--ink-3);padding-top:8px;border-top:3px solid var(--rule);display:flex;gap:5px}
+.steps li::before{content:counter(st);font-variant-numeric:tabular-nums;font-weight:700}
+.steps li.done{border-top-color:var(--ink-3)}
+.steps li.on{border-top-color:var(--quink);color:var(--ink)}
+
+/* ── Home ── */
+.brand{display:flex;align-items:baseline;gap:8px;font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand span{font-family:var(--f-name);font-weight:400;font-size:17px;color:var(--ink-3)}
+.greet h1{font-size:32px;font-weight:600;letter-spacing:-.015em}
+.greet p{color:var(--ink-2);margin-top:6px}
+.progress{display:flex;flex-direction:column;gap:8px}
+.progress-row{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;color:var(--ink-2)}
+.progress-row b{font-weight:600;color:var(--ink)}
+.segs{display:flex;gap:4px}
+.segs i{flex:1;height:6px;border-radius:3px;background:var(--rule)}
+.segs i.on{background:var(--done)}
+.route{border-top:1px solid var(--rule)}
+.route li{border-bottom:1px solid var(--rule)}
+.row{display:grid;grid-template-columns:40px 1fr 24px;gap:12px;align-items:start;width:100%;text-align:left;padding:18px 4px 18px 0;border-radius:0}
+.row:hover .row-name{text-decoration:underline;text-decoration-color:var(--rule-strong);text-underline-offset:4px}
+.row > .ic{margin-top:6px;color:var(--ink-3)}
+.ord{width:36px;height:36px;border-radius:50%;border:2px solid var(--rule-strong);display:grid;place-items:center;font-weight:700;font-size:16px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.ord.next{background:var(--quink);border-color:var(--quink);color:var(--on-quink)}
+.ord.done{background:var(--done);border-color:var(--done);color:var(--on-done)}
+.ord.done svg{width:20px;height:20px;stroke-width:2.6}
+.row-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.row-name{font-size:21px;line-height:1.25}
+.row-meta{color:var(--ink-2);font-size:16px}
+.row-foot{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:6px;font-size:15px}
+.next-tag{font-size:13px;font-weight:700;color:var(--quink-text)}
+
+/* End of day */
+.eod{display:flex;flex-direction:column;gap:18px;padding-top:4px}
+.eod svg.book{width:120px;height:auto}
+.eod h2{font-size:28px;font-weight:600;letter-spacing:-.01em}
+.eod p{color:var(--ink-2);max-width:36ch}
+.ledger{border-top:1.5px solid var(--ink);display:grid}
+.ledger div{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--rule);gap:12px}
+.ledger dt{color:var(--ink-2)}
+.ledger dd{font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.dayline{display:grid;gap:0;border-left:2px solid var(--rule);margin-left:4px}
+.dayline li{display:grid;grid-template-columns:64px 1fr;gap:8px;padding:6px 0 6px 14px;position:relative;font-size:16px}
+.dayline li::before{content:"";position:absolute;left:-6px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--done)}
+.linkish{min-height:32px;text-align:left;color:var(--ink)}
+.linkish:hover .name{text-decoration:underline;text-underline-offset:3px}
+.dayline time{color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* ── Brief ── */
+.head{display:flex;flex-direction:column;gap:6px}
+.stop{font-size:15px;color:var(--ink-3);font-weight:500}
+.head h1{font-size:34px;line-height:1.15}
+.head .place{color:var(--ink-3);font-size:15px}
+.teacher{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin-top:8px;padding-top:12px;border-top:1px solid var(--rule)}
+.teacher .name{font-size:22px}
+.teacher span:last-child{color:var(--ink-2)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec h2{font-size:15px;font-weight:600;color:var(--ink-2);letter-spacing:.01em}
+.when{font-size:16px;color:var(--ink-2)}
+.when b{color:var(--ink);font-weight:600}
+.rot{display:inline-block;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--sunk);border-radius:6px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.summary{font-size:18px;line-height:1.5;max-width:40ch}
+.items{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
+.items li{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.items p{font-size:17px;line-height:1.4}
+.items .st{font-size:15px;color:var(--ink-3);margin-top:3px}
+.items .st.look{color:var(--marigold-ink);font-weight:600}
+.empty-note{padding:18px;border:1.5px dashed var(--rule-strong);border-radius:10px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px}
+.empty-note b{color:var(--ink);font-weight:600}
+
+/* ── Observe ── */
+.who-line{font-size:16px;color:var(--ink-2)}
+.who-line .name{color:var(--ink);font-size:18px}
+.lookfor{background:var(--marigold-wash);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:16px;color:var(--ink)}
+.lookfor b{font-size:14px;color:var(--marigold-ink);font-weight:700}
+.lookfor li{display:flex;gap:8px}
+.lookfor li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--marigold);flex:none;margin-top:9px}
+.lang{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;color:var(--ink-2)}
+.seg{display:inline-flex;border:1.5px solid var(--rule-strong);border-radius:10px;overflow:hidden}
+.seg button{min-height:44px;padding:0 14px;font-weight:500;font-size:16px}
+.seg button + button{border-left:1.5px solid var(--rule-strong)}
+.seg button[aria-pressed="true"]{background:var(--quink);color:var(--on-quink)}
+.capture{display:flex;flex-direction:column;align-items:center;gap:16px;padding-block:8px}
+#wave{width:100%;height:76px;display:block}
+.rec{width:136px;height:136px;border-radius:50%;background:var(--quink);color:var(--on-quink);display:grid;place-items:center;position:relative;transition:background-color .2s}
+.rec .ic{width:52px;height:52px;stroke-width:1.8}
+.rec:hover{background:var(--quink-press)}
+.rec.on{background:var(--surface);color:var(--quink-text);border:3px solid var(--quink)}
+.rec.on .ic{fill:currentColor;stroke:none;width:40px;height:40px}
+.rec.on::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:3px solid var(--marigold);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+.rec-status{font-size:18px;font-weight:500;text-align:center;min-height:26px}
+.rec-status .num{font-weight:700}
+.rec-hint{font-size:15px;color:var(--ink-3);text-align:center;max-width:30ch}
+.demo-note{font-size:14px;color:var(--ink-2);background:var(--sunk);border-radius:8px;padding:8px 12px;text-align:center}
+.notebox{display:flex;flex-direction:column;gap:8px}
+.notebox label{font-size:15px;font-weight:600;color:var(--ink-2);display:flex;justify-content:space-between;align-items:baseline}
+.notebox textarea{width:100%;min-height:120px;resize:none;border:1.5px solid var(--rule-strong);border-radius:10px;background:var(--surface);padding:12px 14px;font-size:17px;line-height:1.5}
+.notebox textarea:focus{outline:none;border-color:var(--quink)}
+.notebox textarea[readonly]{background:var(--sunk);border-style:dashed}
+.alt{display:flex;justify-content:center}
+
+/* ── Drafting pause ── */
+.drafting{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;padding-block:24px}
+.drafting h1{font-size:26px;font-weight:600}
+.quote{border-left:3px solid var(--margin);padding:4px 0 4px 14px;color:var(--ink-2);font-size:17px;line-height:1.5}
+.writing{display:flex;flex-direction:column;gap:14px}
+.writing i{display:block;height:3px;border-radius:2px;background:var(--rule);position:relative;overflow:hidden}
+.writing i::after{content:"";position:absolute;inset:0;background:var(--quink);transform-origin:left;transform:scaleX(0);animation:write 2.4s ease-in-out infinite}
+.writing i:nth-child(2){width:86%}.writing i:nth-child(2)::after{animation-delay:.5s}
+.writing i:nth-child(3){width:58%}.writing i:nth-child(3)::after{animation-delay:1s}
+@keyframes write{0%{transform:scaleX(0)}55%,100%{transform:scaleX(1);opacity:0}45%{opacity:1}}
+
+/* ── Review ── */
+.for{display:flex;flex-direction:column;gap:2px}
+.for .name{font-size:24px}
+.for p{color:var(--ink-2);font-size:16px}
+.fcheck{display:flex;flex-direction:column;gap:12px}
+.fcheck h2{font-size:17px;font-weight:600}
+.fitem{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-top:1px solid var(--rule)}
+.fitem p{font-size:17px}
+.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.choice button{min-height:46px;border:1.5px solid var(--rule-strong);border-radius:10px;font-size:15px;font-weight:600;color:var(--ink-2);background:var(--surface)}
+.choice button[aria-pressed="true"][data-v="done"]{background:var(--done);border-color:var(--done);color:var(--on-done)}
+.choice button[aria-pressed="true"][data-v="partly"]{background:var(--marigold-wash);border-color:var(--marigold);color:var(--marigold-ink)}
+.choice button[aria-pressed="true"][data-v="notyet"]{background:var(--sunk);border-color:var(--ink-3);color:var(--ink)}
+
+/* The draft is a register page: a margin line, ruled lines, the mentor's own words. */
+.sheet{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:18px 16px 20px 34px;position:relative;display:flex;flex-direction:column;gap:6px}
+.sheet::before{content:"";position:absolute;left:20px;top:0;bottom:0;width:2px;background:var(--margin)}
+.own{font-size:14px;color:var(--ink-3);margin-bottom:10px;display:flex;flex-direction:column;gap:2px}
+.own b{font-weight:600;color:var(--ink-2)}
+.fl{font-size:15px;font-weight:600;color:var(--quink-text);margin-top:12px}
+textarea.ruled{width:100%;border:0;resize:none;overflow:hidden;background-color:transparent;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 29px,var(--ruled) 29px,var(--ruled) 30px);background-attachment:local;line-height:30px;font-size:17.5px;padding:0 0 1px;min-height:31px;border-radius:0}
+textarea.ruled:focus{outline:none;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 29px,var(--rule-strong) 29px,var(--rule-strong) 30px)}
+textarea.ruled.do{font-weight:600}
+textarea.ruled.how{color:var(--ink-2)}
+textarea.ruled::placeholder{color:var(--ink-3);font-style:italic}
+.acts{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.act{display:grid;grid-template-columns:22px 1fr 40px;gap:10px;align-items:start}
+.act .mk{margin-top:4px}
+.act-x{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;color:var(--ink-3)}
+.act-x:hover{background:var(--sunk);color:var(--ink)}
+.add{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--quink-text);font-weight:600;font-size:16px;padding:0 8px;margin-left:-8px;border-radius:10px}
+.add:hover{background:var(--quink-wash)}
+.carry{font-size:14px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+.cue{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.4;color:var(--marigold-ink);background:var(--marigold-wash);border-radius:8px;padding:8px 10px;margin-top:4px}
+.cue::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--marigold);flex:none;margin-top:6px}
+.cue-slot{grid-column:2 / 4}
+.raw{border-top:1px solid var(--rule);padding-top:4px}
+.raw summary{min-height:48px;display:flex;align-items:center;font-weight:500;color:var(--ink-2);cursor:pointer;list-style:none}
+.raw summary::-webkit-details-marker{display:none}
+.raw summary::after{content:"Show";margin-left:auto;color:var(--quink-text);font-size:15px}
+.raw[open] summary::after{content:"Hide"}
+.raw p{color:var(--ink-2);font-size:16px;padding-bottom:8px}
+.tools{display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:-10px}
+.tools button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;border-radius:10px;color:var(--quink-text);font-weight:500;font-size:16px}
+.tools button:hover{background:var(--quink-wash)}
+.toast{font-size:15px;color:var(--done);font-weight:600;min-height:22px}
+
+/* ── Saved: the one deliberate motion moment ── */
+.saved{display:flex;flex-direction:column;gap:18px;padding-top:10px}
+.stamp{align-self:flex-start;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 20px 10px;border:3px solid var(--quink);border-radius:10px;color:var(--quink-text);transform:rotate(-4deg);text-transform:uppercase;letter-spacing:.09em;font-size:13px;font-weight:600;line-height:1.2;box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3.5px var(--quink);background:var(--surface);margin:8px 0 4px 6px}
+.stamp strong{font-size:24px;letter-spacing:.06em;font-weight:700;font-variant-numeric:tabular-nums}
+.stamp.press{animation:press .5s cubic-bezier(.2,.9,.25,1) both}
+@keyframes press{0%{opacity:0;transform:rotate(-4deg) scale(1.4)}55%{opacity:1;transform:rotate(-4deg) scale(.97)}100%{opacity:1;transform:rotate(-4deg) scale(1)}}
+.saved h1{font-size:28px;font-weight:600;letter-spacing:-.01em}
+.saved h1 .name{font-weight:400}
+.saved p{color:var(--ink-2);max-width:38ch}
+.closed{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
+.closed li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:16px}
+
+/* ── History ── */
+.tally{display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--surface);border:1px solid var(--rule);border-radius:12px}
+.tally p{font-size:17px}
+.tally p b{font-weight:700}
+.strip{display:flex;flex-wrap:wrap;gap:6px}
+.strip .mk{margin:0;width:20px;height:20px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;color:var(--ink-3)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .mk{width:14px;height:14px;margin:0}
+.legend .mk svg{width:10px;height:10px}
+.tl{display:flex;flex-direction:column}
+.tl > li{display:grid;grid-template-columns:62px 1fr;gap:14px;position:relative;padding-bottom:26px}
+.tl > li::before{content:"";position:absolute;left:61px;top:10px;bottom:0;width:2px;background:var(--rule)}
+.tl > li:last-child::before{bottom:auto;height:14px}
+.tl-date{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;padding-top:2px}
+.tl-date b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.tl-date span{font-size:13px;color:var(--ink-3);font-weight:500}
+.tl-body{display:flex;flex-direction:column;gap:8px;padding-left:12px;position:relative}
+.tl-body::before{content:"";position:absolute;left:-7px;top:9px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--ink-3)}
+.tl > li.today .tl-body::before{background:var(--quink);border-color:var(--quink)}
+.tl-by{font-size:14px;color:var(--ink-3);font-weight:500}
+.tl-by .today-tag{color:var(--quink-text);font-weight:700;margin-right:6px}
+.tl-sum{font-size:17px;line-height:1.45}
+.tl-items{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.tl-items li{display:flex;gap:10px;font-size:16px}
+.tl-items .mk{width:18px;height:18px;margin-top:3px}
+.tl-items .mk svg{width:12px;height:12px}
+.tl-items small{display:block;font-size:14px;color:var(--ink-3)}
+
+/* ── Schools ── */
+.search{width:100%;min-height:52px;border:1.5px solid var(--rule-strong);border-radius:12px;background:var(--surface);padding:0 14px;font-size:17px}
+.search:focus{outline:none;border-color:var(--quink)}
+.slist{border-top:1px solid var(--rule)}
+.slist li{border-bottom:1px solid var(--rule)}
+.slist .row{grid-template-columns:1fr 24px}
+
+/* ── Patterns ── */
+.intro{display:flex;flex-direction:column;gap:8px}
+.intro h1{font-size:28px;font-weight:600}
+.intro p{color:var(--ink-2);font-size:16px}
+.preview{align-self:flex-start}
+.pats{display:flex;flex-direction:column;border-top:1.5px solid var(--ink)}
+.pat{display:flex;flex-direction:column;gap:10px;padding:18px 0 20px;border-bottom:1px solid var(--rule)}
+.pat h2{font-size:20px;font-weight:600;line-height:1.3}
+.pat p.body{color:var(--ink-2);font-size:16px;line-height:1.5}
+.pat [contenteditable="true"]{outline:none;background:var(--quink-wash);border-radius:6px;box-shadow:0 0 0 6px var(--quink-wash)}
+.cells{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;max-width:320px}
+.cells i{aspect-ratio:1;border-radius:3px;background:var(--rule);max-width:100%}
+.cells i.on{background:var(--ink-2)}
+.pat.good .cells i.on{background:var(--done)}
+.pat-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;color:var(--ink-3);align-items:center}
+.pat-meta b{color:var(--ink);font-weight:600}
+.pat details summary{font-size:15px;color:var(--quink-text);font-weight:500;cursor:pointer;min-height:40px;display:flex;align-items:center}
+.pat details p{font-size:15px;color:var(--ink-2)}
+.pat .edit{align-self:flex-start;display:inline-flex;gap:6px;align-items:center;min-height:40px;padding:0 8px;margin-left:-8px;border-radius:8px;font-size:15px;font-weight:500;color:var(--quink-text)}
+.pat .edit:hover{background:var(--quink-wash)}
+
+/* ── Side panel (wide screens) and demo sheet ── */
+.side .brand{font-size:26px}
+.side .brand span{font-size:22px}
+.side > p{color:var(--ink-2);font-size:16px;max-width:36ch}
+.side h2{font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:10px}
+.loop{display:flex;flex-direction:column;counter-reset:lp;border-top:1px solid var(--rule)}
+.loop li{counter-increment:lp;display:grid;grid-template-columns:28px 1fr;gap:6px;padding:9px 0;border-bottom:1px solid var(--rule);color:var(--ink-3);font-size:16px;transition:color .2s}
+.loop li::before{content:counter(lp);font-weight:700;font-variant-numeric:tabular-nums}
+.loop li.on{color:var(--ink)}
+.loop li.on::before{color:var(--quink-text)}
+.loop li small{grid-column:2;font-size:14px;color:var(--ink-3)}
+.tips{display:flex;flex-direction:column;gap:8px;font-size:15px;color:var(--ink-2)}
+.tips li{padding-left:14px;position:relative}
+.tips li::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:var(--ink-3)}
+.ctl{display:flex;flex-direction:column;gap:8px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;font-size:16px;width:100%;text-align:left}
+.toggle .sw{width:46px;height:28px;border-radius:14px;background:var(--rule-strong);position:relative;flex:none;transition:background-color .15s}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.toggle[aria-checked="true"] .sw{background:var(--quink)}
+.toggle[aria-checked="true"] .sw::after{transform:translateX(18px)}
+.scrim{position:fixed;inset:0;background:rgba(10,16,24,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet-panel{background:var(--paper);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;max-height:85%;overflow-y:auto}
+.sheet-panel h2{font-size:20px;font-weight:600}
+.demo-btn{font-size:14px;font-weight:600;color:var(--ink-2);border:1.5px solid var(--rule-strong);border-radius:999px;min-height:36px;padding:0 12px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition:none!important}
+  .writing i::after{transform:scaleX(1);opacity:1}
+}
+</style>
+
+<div class="stage">
+  <aside class="side" id="side" aria-label="About this prototype"></aside>
+  <div class="app" id="app"></div>
+</div>
+<div id="overlay"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ───────────────── Icons ───────────────── */
+const I={
+  back:'<svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+  chev:'<svg class="ic" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+  mic:'<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
+  stop:'<svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>',
+  check:'<svg class="ic" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  plus:'<svg class="ic sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  x:'<svg class="ic sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  copy:'<svg class="ic sm" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+  redo:'<svg class="ic sm" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>',
+  pen:'<svg class="ic sm" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/></svg>',
+  kb:'<svg class="ic sm" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>',
+  cloud:'<svg class="ic sm" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z"/><path d="M9.5 13.5l2 2 3.5-3.5"/></svg>',
+  cloudOff:'<svg class="ic sm" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z"/><path d="M12 11v3M12 16.5v.01"/></svg>',
+  route:'<svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6.5"/></svg>',
+  school:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M10 21v-5h4v5M12 5V2.5h3"/></svg>',
+  grid:'<svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.6"/><circle cx="12" cy="6" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/><circle cx="6" cy="18" r="1.6"/><circle cx="12" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/></svg>'
+};
+
+/* ───────────────── Dates ───────────────── */
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const NOW=new Date();
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const TODAY=iso(NOW);
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const fmt=s=>{const d=parse(s);return d.getDate()+' '+MON[d.getMonth()]+(d.getFullYear()!==NOW.getFullYear()?' '+d.getFullYear():'')};
+const fmtLong=s=>{const d=parse(s);return d.getDate()+' '+MONTH[d.getMonth()]+' '+d.getFullYear()};
+const daysAgo=s=>Math.round((parse(TODAY)-parse(s))/864e5);
+const clock=d=>{let h=d.getHours(),m=d.getMinutes();const ap=h>=12?'pm':'am';h=h%12||12;return h+':'+pad(m)+' '+ap};
+const ago=n=>n===0?'today':n===1?'yesterday':n<60?n+' days ago':Math.round(n/30)+' months ago';
+
+/* ───────────────── Seed data ─────────────────
+   One Jan Shiksha Kendra (cluster) with 15 schools. Five are on today's route. */
+const ME={name:'Suresh Rathore',first:'Suresh',role:'CRP',jsk:'Jan Shiksha Kendra Bhanpur',block:'Phanda block, Bhopal'};
+const TPL={
+  names:{s:'Answers came mostly from volunteers in the front rows.',i:'Call on children by name from every row, not only volunteers'},
+  fast:{s:'Board examples moved faster than most children could follow.',i:'After each board example, let children try one on slates'},
+  groups:{s:'Level-wise groups set up in July were no longer in use.',i:'Restart 15 minutes of level-wise group work daily'},
+  books:{s:'Class started late while books were fetched from the office.',i:'Keep books in the classroom so class starts on time'},
+  tlm:{s:'Stick bundles and number cards were used well for place value.',i:'Let children handle the bundles themselves in pairs'},
+  girls:{s:'Girls in the class rarely answered; boys took most turns.',i:'Take answers from a girl and a boy in turn'},
+  lecture:{s:'Mostly reading from the textbook, with little discussion.',i:'Pause after each page for a two-minute pair discussion'}
+};
+function seed(){
+  let n=0;const id=()=> 'i'+(++n);
+  const it=(text,state,checked,how)=>({id:id(),text,state,checked:checked||null,how:how||''});
+  const S={};
+  const add=(key,o)=>{S[key]=Object.assign({id:key,history:[]},o)};
+  add('jhagariya',{name:'EGS Jhagariya',village:'Jhagariya',udise:'23320405509',teacher:'Smt. Shabana Khan',cls:'Classes 1 and 2 (multigrade)',subject:'Hindi',
+    history:[
+      {id:'v1',date:TODAY,mentor:ME.name,time:'9:40 am',today:true,summary:'Multigrade reading class; Class 1 children waited while Class 2 read aloud.',strength:'Letter cards were on the floor within reach, and the print-rich wall now sits at eye level.',
+        items:[it('Give Class 1 a letter-card task while you read with Class 2','pending')]},
+      {id:'v2',date:'2026-06-30',mentor:'Anita Verma',summary:'Letter cards used well; classroom walls had no children\u2019s work on them.',
+        items:[it('Put up a print-rich wall at children\u2019s eye level','done',TODAY)]}
+    ]});
+  add('ratanpur',{name:'GPS Ratanpur',village:'Ratanpur',udise:'23320405201',teacher:'Smt. Kavita Yadav',cls:'Class 3',subject:'Mathematics',
+    sample:{en:'Class 3 maths, subtraction with borrowing. She asked questions but again the same 3 kids in front answered, back rows were quiet. Did call 2 names from the back once, that is progress. Examples on the board still fast, didn\u2019t check slates. Stick bundles were on the table and used well at the start.',
+      hi:'कक्षा 3 गणित, हासिल वाला घटाना। सवाल पूछे लेकिन फिर से आगे के वही 3 बच्चे जवाब दे रहे थे, पीछे वाले चुप थे। एक बार पीछे से 2 बच्चों का नाम लेकर पूछा, यह अच्छा बदलाव है। बोर्ड पर उदाहरण अभी भी जल्दी जल्दी, स्लेट नहीं देखी। शुरुआत में तीलियों के बंडल अच्छे से इस्तेमाल किए।'},
+    history:[
+      {id:'v3',date:'2026-07-14',mentor:'Anita Verma',summary:'Addition lesson. Most answers came from the front two rows, and board examples moved quickly.',strength:'Stick bundles made tens and ones clear to the whole class.',
+        items:[it('Call on children by name from every row, not only volunteers','pending'),it('After each board example, let two children solve a similar one on slates','pending')]},
+      {id:'v4',date:'2026-04-22',mentor:'Anita Verma',summary:'Class started 15 minutes late while workbooks were fetched from the office.',
+        items:[it('Keep workbooks in the classroom cupboard so class starts on time','done','2026-07-14')]},
+      {id:'v5',date:'2026-02-10',mentor:ME.name,summary:'Mostly board work and copying, with few chances for children to answer.',
+        items:[it('Have all children show answers on slates at the same time','done','2026-04-22'),it('Write the day\u2019s learning goal on the board','notyet','2026-04-22')]},
+      {id:'v6',date:'2025-11-18',mentor:ME.name,summary:'Mixed-level class taught as one group; about a third could not read two-digit numbers.',
+        items:[it('Spend 10 minutes daily in level-wise groups for number work','partly','2026-02-10')]}
+    ]});
+  add('bilkhiriya',{name:'GPS Bilkhiriya Kalan',village:'Bilkhiriya Kalan',udise:'23320405307',teacher:'Shri Ramesh Ahirwar',cls:'Class 2',subject:'Hindi reading',
+    sample:{en:'Hindi reading class 2. Teacher had children read aloud one by one, around 10 kids got a turn, good improvement. Letter cards were in the cupboard, not used. Weak readers sat at the back and mostly listened. Class was cheerful.',
+      hi:'कक्षा 2 हिंदी पठन। बच्चों से एक एक करके पढ़वाया, करीब 10 बच्चों को मौका मिला, अच्छा सुधार। अक्षर कार्ड अलमारी में रखे थे, इस्तेमाल नहीं हुए। कमज़ोर पढ़ने वाले पीछे बैठे थे और ज़्यादातर सुनते रहे।'},
+    history:[
+      {id:'v7',date:'2026-08-05',mentor:'Anita Verma',summary:'Children repeated lines after the teacher; few read on their own.',strength:'Children were comfortable and keen to read aloud.',
+        items:[it('Give every child a turn to read aloud this week','done','2026-08-29','Reported by the teacher at the cluster meeting'),it('Use the letter cards from the FLN kit every day','pending')]},
+      {id:'v8',date:'2026-03-12',mentor:ME.name,summary:'Story reading with a picture book went well; reading groups not used.',
+        items:[it('Seat children in two reading-level groups for 15 minutes','partly','2026-08-05')]}
+    ]});
+  add('semri',{name:'GPS Semri Kalan',village:'Semri Kalan',udise:'23320405412',teacher:'Shri Dinesh Patel',cls:'Class 4',subject:'EVS',
+    sample:{en:'EVS class 4 on plants. He started by asking kids which trees are near their homes, good discussion, kids were excited. Then went back to reading from the book for 20 minutes. Only boys answered, girls didn\u2019t speak at all. No pair talk.',
+      hi:'कक्षा 4 पर्यावरण, पौधे। शुरुआत में बच्चों से पूछा कि घर के पास कौन से पेड़ हैं, अच्छी चर्चा हुई। फिर 20 मिनट किताब से पढ़ाया। सिर्फ़ लड़के जवाब दे रहे थे, लड़कियाँ बिल्कुल नहीं बोलीं।'},
+    history:[
+      {id:'v9',date:'2026-07-30',mentor:'Anita Verma',summary:'Water sources lesson read from the book, without linking to the village\u2019s own hand pump and pond.',strength:'Clear board notes and a calm class.',
+        items:[it('Start the lesson with a question about the children\u2019s own village','pending'),it('Let children talk in pairs for two minutes before answering','pending')]},
+      {id:'v10',date:'2026-01-20',mentor:ME.name,summary:'Good use of a village map drawn on chart paper.',
+        items:[it('Keep the village map on the wall and add to it each week','done','2026-07-30')]}
+    ]});
+  add('kolukhedi',{name:'GMS Kolukhedi',village:'Kolukhedi',udise:'23320405618',teacher:'Km. Pooja Meena',cls:'Class 6',subject:'Science',
+    sample:{en:'Class 6 science, light and shadow. Teacher explained well with a torch and a ball, kids were attentive. But no child got to try it themselves. Only question was "understood?" and everyone said yes. Notebooks not checked since August.',
+      hi:'कक्षा 6 विज्ञान, प्रकाश और छाया। टॉर्च और गेंद से अच्छे से समझाया, बच्चे ध्यान से देख रहे थे। लेकिन किसी बच्चे ने खुद करके नहीं देखा। सवाल बस "समझ आया?" था और सबने हाँ कहा।'},
+    history:[]});
+  // The rest of the cluster, lighter records
+  const rest=[
+    ['barkheda','GPS Barkheda Nathu','Shri Mukesh Verma','Class 4','Mathematics',[['2026-08-19','Anita Verma','names','pending'],['2026-03-04',ME.name,'fast','done']]],
+    ['mugaliya','GPS Mugaliya Chhap','Smt. Rekha Solanki','Class 3','Mathematics',[['2026-08-21','Anita Verma','tlm','pending'],['2026-02-26',ME.name,'names','partly']]],
+    ['phanda','GMS Phanda Kalan','Shri Anil Kushwaha','Class 7','English',[['2026-09-03',ME.name,'groups','pending'],['2026-04-15','Anita Verma','lecture','done']]],
+    ['tumda','GPS Tumda','Smt. Meena Rajput','Class 2','Mathematics',[['2026-09-10',ME.name,'names','pending'],['2026-05-02','Anita Verma','tlm','done']]],
+    ['khajuri','GPS Khajuri Sadak','Shri Santosh Malviya','Class 3','Hindi',[['2026-09-08',ME.name,'groups','pending'],['2026-03-20','Anita Verma','books','done']]],
+    ['nipaniya','GPS Nipaniya Jat','Km. Neha Lodhi','Class 5','Mathematics',[['2026-08-27','Anita Verma','fast','notyet'],['2026-02-18',ME.name,'lecture','done']]],
+    ['bagli','GPS Bagli','Shri Rajkumar Jatav','Class 3','Mathematics',[['2026-09-15',ME.name,'fast','pending'],['2026-04-08','Anita Verma','tlm','done']]],
+    ['sukhi','GMS Sukhi Sewaniya','Smt. Sunita Parmar','Class 6','Hindi',[['2026-09-12',ME.name,'groups','pending'],['2026-04-28','Anita Verma','books','partly']]],
+    ['bhairopur','GPS Bhairopur','Shri Imran Qureshi','Class 5','EVS',[['2026-09-17',ME.name,'girls','pending'],['2026-03-11','Anita Verma','lecture','notyet']]],
+    ['kolar','GPS Kolar Khurd','Smt. Lakshmi Dangi','Class 1','Hindi',[['2026-08-12','Anita Verma','books','done'],['2026-02-05',ME.name,'groups','partly']]]
+  ];
+  rest.forEach(([k,name,teacher,cls,subject,vs],x)=>{
+    const hist=vs.map((v,j)=>{const t=TPL[v[2]];const prev=j===0?null:vs[j-1][0];
+      return {id:'g'+x+j,date:v[0],mentor:v[1],summary:t.s,items:[it(t.i,v[3],v[3]==='pending'?null:(prev||v[0]))]};});
+    add(k,{name,village:name.replace(/^(GPS|GMS|EGS) /,''),udise:'233204057'+pad(x+10),teacher,cls,subject,history:hist});
+  });
+  return {v:3,day:TODAY,route:['jhagariya','ratanpur','bilkhiriya','semri','kolukhedi'],schools:S,visited:{jhagariya:{time:'9:40 am',n:1,checked:1}},queue:0,seq:n};
+}
+
+const PATTERNS=[
+  {id:'p1',title:'Answers come from the same few children',body:'In these classes, teachers mostly take answers from volunteers in the front rows, and children at the back rarely speak. The suggestion given most often was to call on children by name across every row.',schools:['ratanpur','semri','barkheda','mugaliya','tumda'],trend:'Up from 3 schools in August'},
+  {id:'p2',title:'Level-wise groups started after the June FLN training, then stopped',body:'Groups were set up in July. By September these classes were back to whole-class teaching, and teachers mention pressure to finish the syllabus. A refresher at the October cluster meeting may help more than school-by-school advice.',schools:['bilkhiriya','phanda','khajuri','sukhi'],trend:'New this month'},
+  {id:'p3',title:'Board examples move faster than children can follow',body:'Teachers work through several examples without checking slates in between, so children who are lost are not noticed until the written work.',schools:['ratanpur','nipaniya','bagli'],trend:'Same as August'},
+  {id:'p4',title:'Girls answer far less than boys in Classes 4 and 5',body:'Noted in two EVS classes. Too few visits yet to say whether this is wider than these schools.',schools:['semri','bhairopur'],trend:'First seen this month'},
+  {id:'p5',good:true,title:'Stick bundles and number cards are in regular use',body:'Place-value materials from the FLN kit are being used at the start of maths lessons. This could be shown at the next cluster meeting as practice that is working.',schools:['ratanpur','jhagariya','tumda','khajuri','bagli','mugaliya'],trend:'Up from 2 schools in July'}
+];
+
+/* ───────────────── Storage (per-browser demo record) ───────────────── */
+const KEY='smaran.v3';
+function load(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.v===3&&r.day===TODAY)return r}catch(e){}return seed()}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
+let D=load();
+
+/* ───────────────── App state ───────────────── */
+const S={screen:'home',tab:'today',stack:[],sid:null,lang:'en',note:'',typing:false,draft:null,check:{},source:'',
+  offline:typeof navigator!=='undefined'&&navigator.onLine===false,aiOff:false,q:'',sheet:false,lastSaved:null,editing:{}};
+let SAMPLE=null;
+(async()=>{try{if(window.claude&&typeof window.claude.use==='function'){SAMPLE=await window.claude.use('sample')}}catch(e){SAMPLE=null}})();
+
+const $app=document.getElementById('app');
+const $side=document.getElementById('side');
+const $ov=document.getElementById('overlay');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const school=id=>D.schools[id||S.sid];
+const firstName=t=>t.replace(/^(Smt\.|Shri|Km\.|Dr\.)\s+/,'').split(' ')[0];
+const bare=t=>t.replace(/^(Smt\.|Shri|Km\.|Dr\.)\s+/,'');
+const lastVisit=s=>s.history.find(v=>!v.today)||null;
+const latest=s=>s.history[0]||null;
+const pendingOf=s=>{const v=lastVisit(s);return v?v.items.filter(i=>i.state==='pending'):[]};
+const STATE_LABEL={done:'Done',partly:'Partly done',notyet:'Not yet',pending:'To check'};
+const mk=st=>`<span class="mk mk-${st}" aria-hidden="true">${st==='done'?I.check:''}</span>`;
+const plural=(n,a,b)=>n+' '+(n===1?a:(b||a+'s'));
+
+/* ───────────────── Navigation ───────────────── */
+function go(screen,opts){opts=opts||{};if(!opts.replace&&S.screen!==screen)S.stack.push({screen:S.screen,sid:S.sid});if(opts.sid)S.sid=opts.sid;S.screen=screen;render(true)}
+function back(){stopRec(true);const p=S.stack.pop();if(p){S.screen=p.screen;S.sid=p.sid}else S.screen='home';render(true)}
+function tab(t){stopRec(true);S.tab=t;S.stack=[];S.screen=t==='today'?'home':t;render(true)}
+
+/* ───────────────── Shared pieces ───────────────── */
+function syncChip(){
+  if(S.offline)return `<span class="sync off" data-sync>${I.cloudOff} No signal${D.queue?', '+plural(D.queue,'note')+' kept on phone':''}</span>`;
+  if(D.queue)return `<span class="sync" data-sync>${I.cloud} Syncing ${plural(D.queue,'note')}</span>`;
+  return `<span class="sync" data-sync>${I.cloud} All notes synced</span>`;
+}
+function steps(n){const L=['Brief','Observe','Review','Saved'];return `<ol class="steps" aria-label="Visit steps">${L.map((l,i)=>`<li class="${i+1<n?'done':i+1===n?'on':''}"${i+1===n?' aria-current="step"':''}>${l}</li>`).join('')}</ol>`}
+function tabs(){const T=[['today','Today',I.route],['schools','Schools',I.school],['patterns','Patterns',I.grid]];
+  return `<nav class="tabs" aria-label="Sections">${T.map(([k,l,ic])=>`<button class="tab" data-act="tab" data-v="${k}"${S.tab===k?' aria-current="page"':''}>${ic}${l}</button>`).join('')}</nav>`}
+function topbar(backLabel,right,ruled){return `<header class="top${ruled?' ruled':''}"><button class="back" data-act="back">${I.back}${esc(backLabel)}</button><span class="spacer"></span>${right||''}</header>`}
+
+/* ───────────────── Screens ───────────────── */
+const SCREENS={};
+
+SCREENS.home=function(){
+  const route=D.route.map(id=>D.schools[id]);
+  const done=route.filter(s=>D.visited[s.id]).length;
+  const allDone=done===route.length;
+  const nextId=(route.find(s=>!D.visited[s.id])||{}).id;
+  const d=parse(TODAY);
+  let body;
+  if(allDone)body=endOfDay(route);
+  else body=`<section class="progress" aria-label="Today's progress">
+      <div class="progress-row"><span><b class="num">${done} of ${route.length}</b> schools visited</span><span>${ME.jsk.replace('Jan Shiksha Kendra ','JSK ')}</span></div>
+      <div class="segs" aria-hidden="true">${route.map(s=>`<i class="${D.visited[s.id]?'on':''}"></i>`).join('')}</div>
+    </section>
+    <section aria-label="Today's route"><ol class="route">${route.map((s,i)=>routeRow(s,i,nextId)).join('')}</ol></section>`;
+  return `<header class="top"><span class="brand">Smaran <span lang="hi">स्मरण</span></span><span class="spacer"></span>${syncChip()}</header>
+  <main>
+    <div class="greet"><h1>Namaste, ${esc(ME.first)}</h1><p>${DAY[d.getDay()]}, ${d.getDate()} ${MONTH[d.getMonth()]}. ${allDone?'Your route is done for today.':route.length+' schools on today\u2019s route.'}</p></div>
+    ${body}
+    <div class="only-mobile"><button class="demo-btn" data-act="sheet">Demo controls</button></div>
+  </main>${tabs()}`;
+};
+function routeRow(s,i,nextId){
+  const v=D.visited[s.id];const lv=lastVisit(s);const pend=pendingOf(s).length;
+  let foot;
+  if(v)foot=`<span class="muted">Visited ${esc(v.time)}</span><span class="chip chip-done">${plural(v.n,'suggestion')} saved</span>`;
+  else foot=`<span class="muted">${lv?'Last visit '+fmt(lv.date):'No visits on record'}</span>${pend?`<span class="chip chip-look">${plural(pend,'item')} to check</span>`:''}`;
+  const ordCls=v?'done':s.id===nextId?'next':'';
+  return `<li><button class="row" data-act="${v?'history':'brief'}" data-id="${s.id}" aria-label="${esc(s.name)}${v?', visited':''}">
+    <span class="ord ${ordCls}" aria-hidden="true">${v?I.check:i+1}</span>
+    <span class="row-main">
+      ${s.id===nextId?'<span class="next-tag">Next</span>':''}
+      <span class="row-name name">${esc(s.name)}</span>
+      <span class="row-meta">${esc(bare(s.teacher))}, ${esc(s.cls.replace(' (multigrade)',''))} ${esc(s.subject)}</span>
+      <span class="row-foot">${foot}</span>
+    </span>${I.chev}</button></li>`;
+}
+function endOfDay(route){
+  const vs=route.map(s=>({s,v:D.visited[s.id]}));
+  const sug=vs.reduce((a,x)=>a+(x.v.n||0),0);
+  const chk=vs.reduce((a,x)=>a+(x.v.checked||0),0);
+  const last=vs[vs.length-1].v.time;
+  return `<section class="eod" aria-label="Day summary">
+    <svg class="book" viewBox="0 0 120 84" aria-hidden="true">
+      <rect x="10" y="8" width="96" height="68" rx="3" style="fill:var(--surface);stroke:var(--ink-3)" stroke-width="2"/>
+      <rect x="10" y="8" width="14" height="68" rx="3" style="fill:var(--quink)"/>
+      <path d="M34 26h58M34 36h58M34 46h58M34 56h40" style="stroke:var(--rule-strong)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M84 8v34l7-6 7 6V8" style="fill:var(--marigold)"/>
+    </svg>
+    <h2>Day closed at ${esc(last)}</h2>
+    <p>You observed ${route.length} classes and left ${plural(sug,'suggestion')}. Each one is on its school\u2019s record now, so whoever visits next will see it first.</p>
+    <dl class="ledger">
+      <div><dt>Schools visited</dt><dd>${route.length} of ${route.length}</dd></div>
+      <div><dt>Suggestions recorded</dt><dd>${sug}</dd></div>
+      <div><dt>Earlier suggestions checked</dt><dd>${chk}</dd></div>
+      <div><dt>Notes waiting to sync</dt><dd>${D.queue}</dd></div>
+    </dl>
+    <ol class="dayline" aria-label="Visits today">${vs.map(x=>`<li><time>${esc(x.v.time)}</time><button class="linkish" data-act="history" data-id="${x.s.id}" style="text-align:left"><span class="name">${esc(x.s.name)}</span></button></li>`).join('')}</ol>
+    <p class="muted">Next route: Monday, 4 schools in ${esc(ME.jsk.replace('Jan Shiksha Kendra ',''))} cluster.</p>
+  </section>`;
+}
+
+SCREENS.brief=function(){
+  const s=school();const lv=lastVisit(s);const pend=pendingOf(s);const idx=D.route.indexOf(s.id);
+  const hasRot=lv&&lv.mentor!==ME.name;
+  let hist;
+  if(!lv)hist=`<div class="empty-note"><b>First visit on record</b><span>Nothing to follow up yet. What you note today starts this school\u2019s record, and the next visitor will see it here.</span></div>`;
+  else hist=`<section class="sec"><h2>Last visit</h2>
+      <p class="when"><b>${fmtLong(lv.date)}</b>, ${ago(daysAgo(lv.date))}, by ${esc(lv.mentor===ME.name?'you':lv.mentor)}${hasRot?'<span class="rot">previous CRP</span>':''}</p>
+      <p class="summary">${esc(lv.summary)}</p></section>
+    <section class="sec"><h2>Suggested last time</h2><ul class="items">${lv.items.map(i=>`<li>${mk(i.state)}<div><p>${esc(i.text)}</p><p class="st${i.state==='pending'?' look':''}">${i.state==='pending'?'Not checked yet. Look for this today.':STATE_LABEL[i.state]+(i.checked?', marked '+fmt(i.checked):'')+(i.how?'. '+esc(i.how):'')}</p></div></li>`).join('')}</ul></section>`;
+  return `${topbar('Today','<button class="linkbtn" data-act="history" data-id="'+s.id+'">History</button>')}
+  <main>
+    ${steps(1)}
+    <header class="head">
+      ${idx>=0?`<p class="stop">Stop ${idx+1} of ${D.route.length}</p>`:''}
+      <h1 class="name">${esc(s.name)}</h1>
+      <p class="place num">${esc(s.village)}, UDISE ${esc(s.udise)}</p>
+      <div class="teacher"><span class="name">${esc(s.teacher)}</span><span>${esc(s.cls)}, ${esc(s.subject)}</span></div>
+      ${pend.length?`<div style="margin-top:10px"><span class="chip chip-look">${plural(pend.length,'thing')} to look for today</span></div>`:''}
+    </header>
+    ${hist}
+  </main>
+  <footer class="bar"><button class="btn btn-primary" data-act="observe">${I.mic}Start observation</button></footer>`;
+};
+
+SCREENS.observe=function(){
+  const s=school();const pend=pendingOf(s);
+  const recOn=rec.on;
+  return `${topbar('Brief')}
+  <main>
+    ${steps(2)}
+    <p class="who-line"><span class="name">${esc(s.teacher)}</span>, ${esc(s.cls)} ${esc(s.subject)}</p>
+    ${pend.length?`<div class="lookfor"><b>Look for</b><ul>${pend.map(i=>`<li>${esc(i.text)}</li>`).join('')}</ul></div>`:''}
+    <div class="lang"><span id="lang-l">Speaking in</span><span class="seg" role="group" aria-labelledby="lang-l">
+      <button data-act="lang" data-v="en" aria-pressed="${S.lang==='en'}">English</button>
+      <button data-act="lang" data-v="hi" aria-pressed="${S.lang==='hi'}" lang="hi">हिन्दी</button></span></div>
+    ${S.typing?'':`<section class="capture" aria-label="Voice note">
+      <canvas id="wave" aria-hidden="true"></canvas>
+      <button class="rec${recOn?' on':''}" id="recbtn" data-act="rec" aria-label="${recOn?'Stop recording':'Start recording'}">${recOn?I.stop:I.mic}</button>
+      <p class="rec-status" id="recstatus" aria-live="polite">${recOn?'Listening <span class="num" id="timer">0:00</span>':(S.note?'Tap to add more':'Tap and speak')}</p>
+      <p class="rec-hint">${recOn?'Tap again to stop.':'Say it as you would to a colleague. Rough is fine.'}</p>
+      <p class="demo-note" id="demonote" hidden></p>
+    </section>`}
+    <div class="notebox"${!S.note&&!S.typing?' hidden':''} id="notewrap">
+      <label for="note"><span>${S.typing?'Type your observation':'Your note'}</span><span class="muted" style="font-weight:400">${S.typing?'':'You can correct it'}</span></label>
+      <textarea id="note" ${recOn?'readonly':''} placeholder="e.g. taught addition, only 2 strong kids answered, teacher rushed the examples">${esc(S.note)}</textarea>
+    </div>
+    <div class="alt"><button class="btn-text" data-act="typing" style="padding:0 12px;border-radius:10px;display:inline-flex;align-items:center;gap:8px">${S.typing?I.mic+'Speak instead':I.kb+'Type instead, for noisy rooms'}</button></div>
+  </main>
+  <footer class="bar"><button class="btn btn-primary" id="draftbtn" data-act="structure" ${canDraft()?'':'disabled'}>Draft feedback</button></footer>`;
+};
+const canDraft=()=>!rec.on&&S.note.trim().length>=12;
+
+SCREENS.drafting=function(){
+  const s=school();
+  return `<header class="top"></header>
+  <main>
+    ${steps(3)}
+    <section class="drafting" aria-live="polite">
+      <h1>Turning your note into feedback for ${esc(firstName(s.teacher))} ji</h1>
+      <p class="quote">${esc(S.note.length>220?S.note.slice(0,220)+'\u2026':S.note)}</p>
+      <div class="writing" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="muted" style="font-size:15px">Usually a few seconds. Your note is already saved on this phone.</p>
+    </section>
+  </main>
+  <footer class="bar"><button class="btn btn-secondary" data-act="skipdraft">Skip and write it myself</button></footer>`;
+};
+
+SCREENS.review=function(){
+  const s=school();const lv=lastVisit(s);const pend=pendingOf(s);const d=S.draft;
+  const src={ai:'Drafted from your note with Claude.',local:'Drafted on this phone from your note.',offline:'No signal, so this was drafted on the phone from your note.',self:'Written by you.'}[S.source]||'';
+  return `${topbar('Note',null,true)}
+  <main>
+    ${steps(3)}
+    <div class="for"><span class="muted" style="font-size:15px">Feedback for</span><span class="name">${esc(s.teacher)}</span><p>${esc(s.cls)}, ${esc(s.subject)}. ${esc(s.name)}</p></div>
+    ${pend.length?`<section class="fcheck"><h2>From ${fmt(lv.date)}: what did you see today?</h2>${pend.map(i=>`<div class="fitem"><p>${esc(i.text)}</p>
+      <div class="choice" role="group" aria-label="${esc(i.text)}">${['done','partly','notyet'].map(v=>`<button data-act="fcheck" data-id="${i.id}" data-v="${v}" aria-pressed="${S.check[i.id]===v}">${STATE_LABEL[v]}</button>`).join('')}</div></div>`).join('')}</section>`:''}
+    <section class="sheet" aria-label="Feedback draft">
+      <p class="own"><b>Your draft. Change anything before saving.</b><span>${esc(src)} Nothing reaches the teacher until you confirm.</span></p>
+      <label class="fl" for="f-strength">What worked</label>
+      <textarea id="f-strength" class="ruled auto" data-f="strength" rows="1" placeholder="One thing that went well in this class">${esc(d.strength)}</textarea>
+      <div class="cue" id="cue-strength" hidden></div>
+      <h3 class="fl">Try next</h3>
+      <ul class="acts">${d.actions.map((a,k)=>`<li class="act">${mk('pending')}
+        <div><label class="vh" for="f-do-${k}">Suggestion ${k+1}</label><textarea id="f-do-${k}" class="ruled auto do" data-f="do:${k}" rows="1" placeholder="What to try">${esc(a.do)}</textarea>
+        <label class="vh" for="f-how-${k}">How</label><textarea id="f-how-${k}" class="ruled auto how" data-f="how:${k}" rows="1" placeholder="How, in the classroom">${esc(a.how)}</textarea></div>
+        <button class="act-x" data-act="rmact" data-k="${k}" aria-label="Remove suggestion ${k+1}">${I.x}</button>
+        <div class="cue cue-slot" id="cue-do-${k}" hidden></div></li>`).join('')}</ul>
+      ${d.actions.length<3?`<button class="add" data-act="addact">${I.plus}Add a suggestion</button>`:''}
+      <p class="carry">${mk('pending')}<span>Checked at the next visit, whoever makes it.</span></p>
+      <label class="fl" for="f-summary">Line for the school record</label>
+      <textarea id="f-summary" class="ruled auto" data-f="summary" rows="1" placeholder="One line on what you saw">${esc(d.summary)}</textarea>
+      <div class="cue" id="cue-summary" hidden></div>
+    </section>
+    <div class="tools"><button data-act="redraft">${I.redo}Redraft from note</button><button data-act="copy">${I.copy}Copy for WhatsApp</button></div>
+    <p class="toast" id="toast" aria-live="polite"></p>
+    <details class="raw"><summary>Your original note</summary><p>${esc(S.note)}</p></details>
+  </main>
+  <footer class="bar"><button class="btn btn-primary" data-act="save">Confirm and save</button></footer>`;
+};
+
+SCREENS.saved=function(){
+  const s=school();const v=latest(s);const d=parse(TODAY);const ls=S.lastSaved||{n:0,checked:0,items:[]};
+  const nxt=D.route.map(id=>D.schools[id]).find(x=>!D.visited[x.id]);
+  return `<header class="top"></header>
+  <main>
+    ${steps(4)}
+    <section class="saved">
+      <div class="stamp press" role="img" aria-label="Saved to school record, ${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}"><span>Saved to record</span><strong>${pad(d.getDate())} ${MON[d.getMonth()]} ${d.getFullYear()}</strong><span>${esc(s.name)}</span></div>
+      <h1>Feedback saved for <span class="name">${esc(bare(s.teacher))}</span></h1>
+      <p>${ls.n?plural(ls.n,'suggestion')+(ls.n===1?' is now':' are now'):'This visit is now'} on ${esc(s.name)}\u2019s record. ${ls.n?(ls.n===1?'It':'They')+' will come up at the next visit, whoever makes it.':''}</p>
+      ${ls.items.length?`<div class="sec"><h2 style="font-size:15px;font-weight:600;color:var(--ink-2)">Closed from last visit</h2><ul class="closed">${ls.items.map(i=>`<li>${mk(i.state)}<span>${esc(i.text)}<br><span class="muted" style="font-size:14px">${STATE_LABEL[i.state]}</span></span></li>`).join('')}</ul></div>`:''}
+      <div>${syncChip()}</div>
+      <div class="tools" style="margin-top:0"><button data-act="copy">${I.copy}Copy feedback for WhatsApp</button><button data-act="history" data-id="${s.id}">See this school\u2019s record</button></div>
+      <p class="toast" id="toast" aria-live="polite"></p>
+    </section>
+  </main>
+  <footer class="bar">${nxt?`<button class="btn btn-primary" data-act="brief" data-id="${nxt.id}" data-fresh="1">Next: <span class="name" style="font-weight:400">${esc(nxt.name)}</span></button>`:''}<button class="btn ${nxt?'btn-text':'btn-primary'}" data-act="tab" data-v="today">Back to today</button></footer>`;
+};
+
+SCREENS.history=function(){
+  const s=school();
+  const all=[];s.history.slice().reverse().forEach(v=>v.items.forEach(i=>all.push(i)));
+  const c={done:0,partly:0,notyet:0,pending:0};all.forEach(i=>c[i.state]++);
+  const first=s.history.length?s.history[s.history.length-1].date:null;
+  const fromTab=S.stack.length===0;
+  return `${fromTab?'<header class="top"></header>':topbar('Back')}
+  <main>
+    <header class="head">
+      <h1 class="name">${esc(s.name)}</h1>
+      <p class="place num">${esc(s.village)}, UDISE ${esc(s.udise)}</p>
+      <div class="teacher"><span class="name">${esc(s.teacher)}</span><span>${esc(s.cls)}, ${esc(s.subject)}</span></div>
+    </header>
+    ${s.history.length?`<section class="tally" aria-label="Follow-through">
+      <p>${plural(s.history.length,'visit')} since ${fmt(first)}. Of ${plural(all.length,'suggestion')}, <b>${c.done} taken up</b>${c.partly?`, ${c.partly} partly`:''}${c.notyet?`, ${c.notyet} not yet`:''}${c.pending?`, ${c.pending} waiting to be checked`:''}.</p>
+      <div class="strip" aria-hidden="true">${all.map(i=>mk(i.state)).join('')}</div>
+      <div class="legend">${['done','partly','notyet','pending'].map(k=>`<span>${mk(k)}${STATE_LABEL[k]}</span>`).join('')}</div>
+    </section>
+    <ol class="tl" aria-label="Visits, newest first">${s.history.map(v=>{const d=parse(v.date);return `<li class="${v.today?'today':''}">
+      <div class="tl-date"><b>${d.getDate()}</b><span>${MON[d.getMonth()]} ${d.getFullYear()}</span></div>
+      <div class="tl-body"><p class="tl-by">${v.today?'<span class="today-tag">Today</span>':''}${esc(v.mentor===ME.name?'You':v.mentor)}${v.time?', '+esc(v.time):''}</p>
+      <p class="tl-sum">${esc(v.summary)}</p>
+      <ul class="tl-items">${v.items.map(i=>`<li>${mk(i.state)}<span>${esc(i.text)}<small>${STATE_LABEL[i.state]}${i.checked&&i.state!=='pending'?', checked '+fmt(i.checked):''}</small></span></li>`).join('')}</ul></div></li>`}).join('')}</ol>`
+    :`<div class="empty-note"><b>No visits on record yet</b><span>The first observation you save here will start this school\u2019s record.</span></div>`}
+  </main>${fromTab?tabs():''}`;
+};
+
+SCREENS.schools=function(){
+  return `<header class="top"><span class="brand">Schools</span><span class="spacer"></span>${syncChip()}</header>
+  <main>
+    <div><label class="vh" for="search">Search schools or teachers</label><input id="search" class="search" type="search" placeholder="Search school or teacher" value="${esc(S.q)}" autocomplete="off"></div>
+    <ul class="slist" id="slist">${schoolRows()}</ul>
+  </main>${tabs()}`;
+};
+function schoolRows(){
+  const q=S.q.trim().toLowerCase();
+  const list=Object.values(D.schools).filter(s=>!q||(s.name+' '+s.teacher+' '+s.village).toLowerCase().includes(q)).sort((a,b)=>a.name.replace(/^\w+ /,'').localeCompare(b.name.replace(/^\w+ /,'')));
+  if(!list.length)return `<li style="padding:18px 0;color:var(--ink-3)">No school or teacher matches \u201c${esc(S.q)}\u201d.</li>`;
+  return list.map(s=>{const lv=latest(s);const p=pendingOf(s).length+(lv&&lv.today?lv.items.filter(i=>i.state==='pending').length:0);
+    return `<li><button class="row" data-act="history" data-id="${s.id}"><span class="row-main"><span class="row-name name">${esc(s.name)}</span><span class="row-meta">${esc(bare(s.teacher))}, ${esc(s.cls.replace(' (multigrade)',''))} ${esc(s.subject)}</span>
+      <span class="row-foot"><span class="muted">${lv?(lv.today?'Visited today':'Last visit '+fmt(lv.date)):'No visits yet'}</span>${p?`<span class="chip chip-plain">${plural(p,'suggestion')} open</span>`:''}</span></span>${I.chev}</button></li>`}).join('');
+}
+
+SCREENS.patterns=function(){
+  const ids=Object.keys(D.schools);
+  return `<header class="top"><span class="brand">Patterns</span><span class="spacer"></span><span class="chip chip-plain">Roadmap preview</span></header>
+  <main>
+    <div class="intro"><h1>Across ${esc(ME.jsk.replace('Jan Shiksha Kendra ',''))} cluster this month</h1>
+      <p>For the Block Resource Coordinator. Drafted from 41 visit notes in ${MONTH[NOW.getMonth()]} across 15 schools. Edit the wording before it goes to the BEO.</p></div>
+    <ul class="pats">${PATTERNS.map(p=>{const ed=!!S.editing[p.id];return `<li class="pat${p.good?' good':''}">
+      <h2 id="pt-${p.id}" ${ed?'contenteditable="true"':''}>${esc(p.title)}</h2>
+      <div class="cells" aria-hidden="true">${ids.map(id=>`<i class="${p.schools.includes(id)?'on':''}"></i>`).join('')}</div>
+      <p class="pat-meta"><span><b>${p.schools.length} of 15 schools</b></span><span>${esc(p.trend)}</span></p>
+      <p class="body" id="pb-${p.id}" ${ed?'contenteditable="true"':''}>${esc(p.body)}</p>
+      <details><summary>Which schools</summary><p>${p.schools.map(id=>esc(D.schools[id].name)).join(', ')}</p></details>
+      <button class="edit" data-act="editpat" data-id="${p.id}" aria-pressed="${ed}">${ed?I.check+'Done editing':I.pen+'Edit wording'}</button>
+    </li>`}).join('')}</ul>
+  </main>${tabs()}`;
+};
+
+/* ───────────────── Render ───────────────── */
+function render(top){
+  $app.innerHTML=SCREENS[S.screen]();
+  if(top){$app.scrollTop=0;window.scrollTo(0,0)}
+  $app.querySelectorAll('textarea.auto').forEach(grow);
+  if(S.screen==='review')$app.querySelectorAll('textarea[data-f]').forEach(t=>toneCheck(t));
+  if(S.screen==='observe'){drawWave();if(rec.demo)showDemoNote()}
+  renderSide();
+}
+function grow(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+
+/* Side panel on wide screens / demo sheet on phones */
+const LOOPMAP={brief:[1,6],observe:[2],drafting:[3],review:[3,4],saved:[5],history:[6]};
+function demoControls(){
+  return `<div class="ctl">
+    <button class="toggle" role="switch" aria-checked="${S.offline}" data-act="offline"><span>Simulate no signal</span><span class="sw" aria-hidden="true"></span></button>
+    <button class="btn btn-secondary" data-act="finishday">Finish the rest of today\u2019s route</button>
+    <button class="btn btn-text" data-act="reset">Reset demo data</button>
+  </div>`;
+}
+function renderSide(){
+  const on=LOOPMAP[S.screen]||[];
+  const L=[['Pre-visit brief','What was suggested last time, and whether it was done'],['Voice observation','Raw and spoken, no forms'],['Feedback drafted','Specific and kind, from the raw note'],['Mentor reviews','Edits and approves. Nothing is sent without this'],['Saved to the school','Against this exact school and teacher'],['Resurfaced next visit','Even when a different mentor comes']];
+  $side.innerHTML=`<p class="brand">Smaran <span lang="hi">स्मरण</span></p>
+    <p>A field app for Cluster and Block Resource Persons, so that mentoring builds from one visit to the next. Prototype for Challenge 5, Dead_Code_Society.</p>
+    <section><h2>The loop</h2><ol class="loop">${L.map((l,i)=>`<li class="${on.includes(i+1)?'on':''}">${l[0]}<small>${l[1]}</small></li>`).join('')}</ol></section>
+    <section><h2>Try it</h2><ul class="tips">
+      <li>Open GPS Ratanpur from Today and walk through a visit.</li>
+      <li>In the draft, type \u201cneeds to improve\u201d or \u201ccareless\u201d into a line to see the tone check.</li>
+      <li>Turn on no signal: notes are kept on the phone and drafted there.</li>
+      <li>The example school records, route and cluster are sample data.</li>
+    </ul></section>
+    <section><h2>Demo controls</h2>${demoControls()}</section>`;
+}
+function openSheet(){S.sheet=true;$ov.innerHTML=`<div class="scrim" data-act="closesheet"><div class="sheet-panel" role="dialog" aria-modal="true" aria-label="Demo controls" data-stop="1"><h2>Demo controls</h2><p class="muted" style="font-size:15px">School records, route and cluster are sample data. Changes stay in this browser.</p>${demoControls()}<button class="btn btn-secondary" data-act="closesheet">Close</button></div></div>`;const b=$ov.querySelector('.toggle');b&&b.focus()}
+function closeSheet(){S.sheet=false;$ov.innerHTML=''}
+
+/* ───────────────── Recording ───────────────── */
+const rec={on:false,t0:0,raf:0,levels:[],lastPush:0,stream:null,actx:null,an:null,buf:null,sr:null,demo:false,demoTimer:0,base:'',finalTxt:'',demoWords:null,demoI:0};
+async function startRec(){
+  rec.on=true;rec.t0=Date.now();rec.levels=[];rec.base=S.note?S.note.trim()+' ':'';rec.finalTxt='';rec.demo=false;
+  render();
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let srStarted=false;
+  if(SR&&!S.offline){
+    try{
+      const r=new SR();r.lang=S.lang==='hi'?'hi-IN':'en-IN';r.continuous=true;r.interimResults=true;
+      r.onresult=e=>{let fin='',int='';for(let i=0;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=t+' ';else int+=t}
+        rec.finalTxt=fin;S.note=(rec.base+fin+int).trim();setNote()};
+      r.onerror=e=>{if(rec.on&&!rec.demo&&/not-allowed|service-not-allowed|audio-capture|network/.test(e.error))startDemo()};
+      r.onend=()=>{if(rec.on&&!rec.demo&&rec.sr===r){try{r.start()}catch(_){}}};
+      r.start();rec.sr=r;srStarted=true;
+    }catch(e){srStarted=false}
+  }
+  if(!srStarted)startDemo();
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    if(!rec.on){st.getTracks().forEach(t=>t.stop());return}
+    rec.stream=st;const AC=window.AudioContext||window.webkitAudioContext;rec.actx=new AC();
+    const src=rec.actx.createMediaStreamSource(st);rec.an=rec.actx.createAnalyser();rec.an.fftSize=512;src.connect(rec.an);rec.buf=new Uint8Array(rec.an.fftSize);
+  }catch(e){rec.an=null}
+}
+function startDemo(){
+  if(rec.demo)return;rec.demo=true;
+  if(rec.sr){const r=rec.sr;rec.sr=null;try{r.abort()}catch(_){}}
+  const s=school();const txt=(s.sample&&(s.sample[S.lang]||s.sample.en))||'Taught the lesson from the textbook. Only a few children in the front answered. Examples on the board went fast and slates were not checked.';
+  rec.demoWords=txt.split(' ');rec.demoI=0;
+  showDemoNote();
+  clearInterval(rec.demoTimer);
+  rec.demoTimer=setInterval(()=>{if(rec.demoI>=rec.demoWords.length){clearInterval(rec.demoTimer);return}
+    S.note=(rec.base+rec.demoWords.slice(0,++rec.demoI).join(' ')).trim();setNote()},160);
+}
+function showDemoNote(){const el=document.getElementById('demonote');if(!el)return;el.hidden=false;
+  el.textContent=S.offline?'No signal: in the field the audio would be kept and transcribed later. A sample observation is filled in here.':'The microphone isn\u2019t available in this view, so a sample observation for this class is filled in.'}
+function stopRec(silent){
+  if(!rec.on)return;rec.on=false;
+  if(rec.sr){const r=rec.sr;rec.sr=null;try{r.stop()}catch(_){}}
+  clearInterval(rec.demoTimer);
+  if(rec.demo&&rec.demoWords&&rec.demoI<rec.demoWords.length){S.note=(rec.base+rec.demoWords.join(' ')).trim()}
+  if(rec.stream){rec.stream.getTracks().forEach(t=>t.stop());rec.stream=null}
+  if(rec.actx){try{rec.actx.close()}catch(_){}rec.actx=null}rec.an=null;
+  cancelAnimationFrame(rec.raf);
+  if(!silent)render();
+}
+function setNote(){
+  const w=document.getElementById('notewrap');if(w)w.hidden=false;
+  const t=document.getElementById('note');if(t){t.value=S.note;t.style.height='auto';t.style.height=Math.max(120,t.scrollHeight)+'px'}
+}
+function drawWave(){
+  const c=document.getElementById('wave');if(!c)return;
+  const dpr=Math.min(2,window.devicePixelRatio||1),w=c.clientWidth,h=c.clientHeight;
+  if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+  const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+  const cs=getComputedStyle(document.documentElement);
+  const col=cs.getPropertyValue('--quink').trim()||'#2A3F9D',idle=cs.getPropertyValue('--rule-strong').trim()||'#B6BFC8';
+  const step=6,n=Math.floor(w/step),now=Date.now();
+  if(rec.on&&now-rec.lastPush>70){
+    rec.lastPush=now;let lv;
+    if(rec.an){rec.an.getByteTimeDomainData(rec.buf);let sum=0;for(let i=0;i<rec.buf.length;i++){const v=(rec.buf[i]-128)/128;sum+=v*v}lv=Math.min(1,Math.sqrt(sum/rec.buf.length)*4)}
+    else{const t=(now-rec.t0)/1000;const talk=Math.sin(t*1.3)>-0.55?1:0.15;lv=talk*(0.18+0.5*Math.abs(Math.sin(t*4.1)*Math.sin(t*2.3+1)))+Math.random()*0.18*talk}
+    rec.levels.push(lv);if(rec.levels.length>n)rec.levels.shift();
+  }
+  const off=n-rec.levels.length;
+  for(let i=0;i<n;i++){const lv=i>=off?rec.levels[i-off]:0;const bh=Math.max(3,lv*(h-6));g.fillStyle=i>=off&&rec.on?col:idle;
+    const x=i*step,y=(h-bh)/2;if(g.roundRect){g.beginPath();g.roundRect(x,y,3,bh,1.5);g.fill()}else g.fillRect(x,y,3,bh)}
+  const tm=document.getElementById('timer');if(tm){const sec=Math.floor((now-rec.t0)/1000);tm.textContent=Math.floor(sec/60)+':'+pad(sec%60)}
+  if(rec.on)rec.raf=requestAnimationFrame(drawWave);
+}
+
+/* ───────────────── Drafting feedback ───────────────── */
+const RULES=[
+  {k:/(same (few |\d+ )?(kids|children|students)|front (row|two|kids|children)|in front|only (\d|two|three|few|2|3) (strong )?(kids|children)|volunteer|back rows?|back ?bench|आगे के|पीछे वाले|चुप)/i,
+    en:['Call on children by name from every row, not only volunteers.','Tell the class you will choose who answers, then pick from the back and middle rows. Keep a small tick list so every child gets a turn this week.'],
+    hi:['हर पंक्ति से बच्चों का नाम लेकर पूछें, सिर्फ़ हाथ उठाने वालों से नहीं।','कक्षा को बताएँ कि जवाब देने वाले बच्चे आप चुनेंगे, फिर पीछे और बीच की पंक्ति से नाम लें। एक छोटी सूची रखें ताकि इस हफ़्ते हर बच्चे की बारी आए।']},
+  {k:/(girls|only boys|लड़कियाँ|लड़कियां)/i,
+    en:['Take answers from a girl and a boy in turn.','When you ask a question, alternate between girls and boys. In pair work, ask the girl in each pair to explain first.'],
+    hi:['जवाब बारी बारी से एक लड़की और एक लड़के से लें।','सवाल पूछते समय लड़कियों और लड़कों से बारी बारी से जवाब लें। जोड़ी में काम हो तो पहले लड़की से समझाने को कहें।']},
+  {k:/(rush|too fast|still fast|fast|quick|hurr|जल्दी)/i,
+    en:['After each board example, let children try a similar one on slates.','Write one similar sum, give a minute, and have everyone hold up their slates. If fewer than half are right, do one more example together.'],
+    hi:['बोर्ड पर हर उदाहरण के बाद बच्चों से स्लेट पर वैसा ही एक सवाल करवाएँ।','एक मिलता जुलता सवाल लिखें, एक मिनट दें, फिर सबसे स्लेट ऊपर करवाएँ। आधे से कम सही हों तो एक और उदाहरण साथ में करें।']},
+  {k:/(understood\??|samajh|समझ आया|didn.?t check|not check|everyone said yes)/i,
+    en:['Replace \u201cunderstood?\u201d with one quick question everyone answers.','Ask a short question and have all children show the answer at once, on slates or with fingers, so you can see who needs help.'],
+    hi:['\u201cसमझ आया?\u201d की जगह एक छोटा सवाल पूछें जिसका जवाब सब दें।','एक छोटा सवाल पूछें और सभी बच्चों से एक साथ स्लेट या उँगलियों पर जवाब दिखवाएँ, ताकि पता चले किसे मदद चाहिए।']},
+  {k:/(no child|themselves|hands.?on|only (the )?teacher (did|showed)|खुद करके)/i,
+    en:['Let children try the activity themselves in small groups.','After your demonstration, give each group of four or five children the material to try, and ask one child from each group to say what they saw.'],
+    hi:['बच्चों को छोटे समूहों में गतिविधि खुद करके देखने दें।','आपके दिखाने के बाद चार पाँच बच्चों के हर समूह को सामग्री दें, और हर समूह से एक बच्चा बताए कि उन्होंने क्या देखा।']},
+  {k:/(weak|level|group|mostly listened|कमज़ोर|कमजोर|समूह|स्तर)/i,
+    en:['Spend 15 minutes daily in level-wise groups.','Make groups from the last reading or number check. Give each group a task at its level and sit with the group that needs you most.'],
+    hi:['रोज़ 15 मिनट स्तर के हिसाब से समूहों में काम करवाएँ।','पिछली जाँच के आधार पर समूह बनाएँ। हर समूह को उसके स्तर का काम दें और सबसे ज़्यादा मदद वाले समूह के साथ बैठें।']},
+  {k:/(not used|cupboard|अलमारी|इस्तेमाल नहीं)/i,
+    en:['Keep learning materials within children\u2019s reach and use them daily.','Put the letter cards or kit items in a basket on the floor, and start each class with a five-minute activity using them.'],
+    hi:['सीखने की सामग्री बच्चों की पहुँच में रखें और रोज़ इस्तेमाल करें।','अक्षर कार्ड या किट की चीज़ें ज़मीन पर एक टोकरी में रखें, और हर कक्षा की शुरुआत पाँच मिनट की गतिविधि से करें।']},
+  {k:/(from (the )?book|lecture|copying|reading from|किताब से)/i,
+    en:['Break long textbook reading with two minutes of pair talk.','After each page, ask children to tell a partner one thing they learned, then take two answers from different parts of the room.'],
+    hi:['किताब से लंबे पढ़ाने के बीच दो मिनट जोड़ी में बातचीत करवाएँ।','हर पन्ने के बाद बच्चे अपने साथी को एक सीखी हुई बात बताएँ, फिर कक्षा के अलग अलग हिस्सों से दो जवाब लें।']},
+  {k:/(notebook|copies|कॉपी)/i,
+    en:['Check five notebooks a day with one line of feedback each.','Pick five notebooks each day, write one line in each, and return them the next morning. Every child is covered within a fortnight.'],
+    hi:['रोज़ पाँच कॉपियाँ जाँचें और हर एक में एक पंक्ति लिखें।','हर दिन पाँच कॉपियाँ लें, हर एक में एक पंक्ति लिखें और अगली सुबह लौटा दें। दो हफ़्ते में हर बच्चे की कॉपी देख ली जाएगी।']}
+];
+const POS=/(good|well|nice|excited|attentive|cheerful|progress|improvement|clear|अच्छ|सुधार|ध्यान से)/i;
+function localDraft(note,lang){
+  const L=lang==='hi'?'hi':'en';
+  const hits=RULES.map(r=>{const m=note.match(r.k);return m?{r,at:m.index}:null}).filter(Boolean).sort((a,b)=>a.at-b.at).slice(0,2);
+  const actions=hits.length?hits.map(h=>({do:h.r[L][0],how:h.r[L][1]})):[{do:L==='hi'?'कल की कक्षा में एक पल चुनें जब आप देखें कि किसे समझ आया।':'Pick one moment in tomorrow\u2019s lesson to check who has understood.',how:L==='hi'?'एक छोटा सवाल पूछें और सबसे एक साथ स्लेट पर जवाब दिखवाएँ।':'Ask one short question and have every child show the answer on a slate at the same time.'}];
+  const sents=note.split(/(?<=[.!?।])\s+/).map(x=>x.trim()).filter(Boolean);
+  const good=sents.filter(x=>POS.test(x)&&!/\b(but|not|didn.?t|no)\b|नहीं|लेकिन/i.test(x)).slice(0,2);
+  const strength=good.length?(L==='hi'?'मैंने देखा: ':'I noticed: ')+good.join(' '):'';
+  const topic=(sents[0]||'').replace(/[.।]$/,'');
+  const summary=(topic.length<80?topic+'. ':'')+(L==='hi'?'सुझाव: ':'Suggested: ')+actions.map(a=>a.do.replace(/[.।]$/,'').toLowerCase()).join('; ')+'.';
+  return {strength,actions,summary:summary.charAt(0).toUpperCase()+summary.slice(1)};
+}
+function aiPrompt(s){
+  const lv=lastVisit(s);
+  const prev=lv?lv.items.map(i=>'- '+i.text+' (today: '+(S.check[i.id]?STATE_LABEL[S.check[i.id]]:i.state==='pending'?'not checked':STATE_LABEL[i.state])+')').join('\n'):'None, this is the first visit on record.';
+  return `You help a government school mentor in India (a Cluster Resource Person) turn a rough spoken classroom observation into feedback they will give the teacher face to face.
+
+Teacher: ${s.teacher}, ${s.cls}, ${s.subject}, ${s.name}
+Suggestions from the last visit:
+${prev}
+
+Mentor's raw observation (may mix Hindi and English, may have speech-to-text errors):
+"""${S.note.slice(0,3000)}"""
+
+Write in ${S.lang==='hi'?'simple, everyday Hindi in Devanagari script':'plain Indian English'}.
+Rules:
+- Warm, respectful and specific, the way an experienced colleague speaks. No jargon, no corporate or clinical words, no inflated praise, nothing harsh.
+- Speak to the teacher as "you".
+- "strength": one or two sentences on something specific that worked, taken only from the observation. If the note mentions nothing positive, return an empty string. Never invent facts.
+- "actions": 1 or 2 suggestions, the most important first. "do" is one concrete classroom action the teacher could try tomorrow, under 15 words. "how" is one or two sentences on exactly how to do it in a government school classroom (slates, blackboard, FLN kit, large classes).
+- If the observation shows progress on a last-visit suggestion, acknowledge it in "strength".
+- "summary": one line under 22 words for the school's visit record, in third person, without pronouns.
+Reply with only JSON in this shape: {"strength":"...","actions":[{"do":"...","how":"..."}],"summary":"..."}`;
+}
+let draftCtl=null;
+async function structure(fresh){
+  stopRec(true);
+  const s=school();
+  go('drafting',{replace:!!fresh});
+  const t0=Date.now();let draft=null,source='';
+  if(SAMPLE&&!S.offline&&!S.aiOff){
+    draftCtl=new AbortController();
+    try{
+      const opts={modelTier:'quick',signal:draftCtl.signal};if(fresh)opts.cache=false;
+      const r=await SAMPLE.json(aiPrompt(s),opts);
+      if(r&&Array.isArray(r.actions)&&r.actions.length){
+        draft={strength:String(r.strength||''),summary:String(r.summary||''),actions:r.actions.slice(0,3).map(a=>({do:String(a&&a.do||''),how:String(a&&a.how||'')})).filter(a=>a.do)};
+        if(draft.actions.length)source='ai';else draft=null;
+      }
+    }catch(e){
+      if(e&&e.code==='cancelled')return;
+      if(e&&/not_granted|sampling_disabled|not_declared|capability_disabled|capability_removed/.test(e.code))S.aiOff=true;
+    }
+    draftCtl=null;
+  }
+  if(!draft){draft=localDraft(S.note,S.lang);source=S.offline?'offline':'local'}
+  const wait=Math.max(0,1300-(Date.now()-t0));
+  setTimeout(()=>{if(S.screen!=='drafting')return;S.draft=draft;S.source=source;S.screen='review';render(true)},wait);
+}
+function skipDraft(){
+  if(draftCtl){draftCtl.abort();draftCtl=null}
+  S.draft={strength:'',actions:[{do:'',how:''}],summary:''};S.source='self';S.screen='review';render(true);
+  const f=document.getElementById('f-strength');f&&f.focus();
+}
+
+/* Tone check: a calm cue, never a block */
+const VAGUE=/\b(improve|improvement|better|try harder|work (on|harder)|be careful|more effort|pay attention|focus more|good job|keep it up|overall|properly|as needed|needs work)\b|सुधार करें|ध्यान दें|बेहतर/i;
+const CONCRETE=/\b(\d+|minutes?|rows?|slates?|board|groups?|pairs?|names?|ask|write|show|read|cards?|bundles?|chart|each|every|daily|before|after|start|end|turn)\b|मिनट|स्लेट|बोर्ड|समूह|नाम|हर|रोज़/i;
+const HARSH=/\b(poor|bad|careless|lazy|useless|failed|failure|pathetic|waste|disappointing|not serious|incompetent|terrible|never|should know|shameful|hopeless)\b|खराब|लापरवाह|बेकार|नाकाम/i;
+function toneCheck(t){
+  const f=t.dataset.f;if(!f)return;const key=f.startsWith('do:')||f.startsWith('how:')?'do-'+f.split(':')[1]:f;
+  const cue=document.getElementById('cue-'+key);if(!cue)return;
+  let txt=t.value;
+  if(key.startsWith('do-')){const k=key.split('-')[1];const a=S.draft.actions[+k];txt=a?(a.do+' '+a.how):''}
+  let m='';
+  if(txt.trim()){
+    if(HARSH.test(txt))m='This may land as harsh. Try describing what happened in class rather than the teacher.';
+    else if(VAGUE.test(txt)&&!CONCRETE.test(txt))m='This reads a little vague. What exactly should happen in class?';
+  }
+  cue.hidden=!m;cue.textContent=m;
+}
+let toneTimers={};
+
+/* Save */
+function saveVisit(){
+  const s=school();const lv=lastVisit(s);const d=S.draft;
+  const items=d.actions.filter(a=>a.do.trim()).map(a=>({id:'i'+(++D.seq),text:a.do.trim().replace(/[.।]$/,''),how:a.how.trim(),state:'pending',checked:null}));
+  const closed=[];
+  if(lv)lv.items.forEach(i=>{if(i.state==='pending'&&S.check[i.id]){i.state=S.check[i.id];i.checked=TODAY;closed.push({text:i.text,state:i.state})}});
+  const time=clock(new Date());
+  s.history.unshift({id:'v'+(++D.seq),date:TODAY,mentor:ME.name,time,today:true,summary:(d.summary||'').trim()||items.map(i=>i.text).join('; '),strength:d.strength.trim(),items,note:S.note});
+  if(D.route.includes(s.id))D.visited[s.id]={time,n:items.length,checked:closed.length};
+  D.queue++;persist();
+  S.lastSaved={n:items.length,checked:closed.length,items:closed};
+  S.screen='saved';S.stack=S.stack.filter(x=>x.screen==='home');render(true);
+  scheduleSync();
+}
+let syncT=0;
+function scheduleSync(){clearTimeout(syncT);if(S.offline||!D.queue)return;syncT=setTimeout(()=>{D.queue=0;persist();document.querySelectorAll('[data-sync]').forEach(el=>{el.outerHTML=syncChip()});if(S.screen==='home')render()},2200)}
+
+function feedbackText(){
+  const s=school();let d=S.draft;
+  if(S.screen==='saved'||!d){const v=latest(s);d={strength:v.strength||'',actions:v.items.map(i=>({do:i.text,how:i.how||''})),summary:v.summary}}
+  const dt=parse(TODAY);const hi=S.lang==='hi';
+  const lines=[`Namaste ${firstName(s.teacher)} ji,`,'',hi?`आज (${dt.getDate()} ${MON[dt.getMonth()]}) की कक्षा के बारे में:`:`Notes from today's visit (${dt.getDate()} ${MON[dt.getMonth()]}):`];
+  if(d.strength.trim())lines.push('',(hi?'जो अच्छा रहा: ':'What worked: ')+d.strength.trim());
+  const acts=d.actions.filter(a=>a.do.trim());
+  if(acts.length){lines.push('',hi?'आगे आज़माएँ:':'To try next:');acts.forEach(a=>lines.push('- '+a.do.trim()+(a.how.trim()?' '+a.how.trim():'')))}
+  lines.push('',`${ME.name}, ${ME.role}, ${ME.jsk}`);
+  return lines.join('\n');
+}
+async function copyText(){
+  const txt=feedbackText();const toast=document.getElementById('toast');
+  try{await navigator.clipboard.writeText(txt);if(toast)toast.textContent='Copied. Paste it into WhatsApp.'}
+  catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();if(toast)toast.textContent=ok?'Copied. Paste it into WhatsApp.':'Copy isn\u2019t available here. Select the text in the draft instead.'}
+  setTimeout(()=>{if(toast)toast.textContent=''},3500);
+}
+
+/* Demo: finish remaining schools with sample notes */
+function finishDay(){
+  const savedLang=S.lang;
+  D.route.forEach((id,n)=>{if(D.visited[id])return;const s=D.schools[id];const note=s.sample?s.sample.en:'';const d=localDraft(note,'en');const lv=lastVisit(s);let closed=0;
+    if(lv)lv.items.forEach((i,j)=>{if(i.state==='pending'){i.state=j%2?'partly':'done';i.checked=TODAY;closed++}});
+    const h=11+n,time=(h>12?h-12:h)+':'+(n%2?'45':'10')+' '+(h>=12?'pm':'am');
+    const items=d.actions.map(a=>({id:'i'+(++D.seq),text:a.do.replace(/[.।]$/,''),how:a.how,state:'pending',checked:null}));
+    s.history.unshift({id:'v'+(++D.seq),date:TODAY,mentor:ME.name,time,today:true,summary:d.summary,strength:d.strength,items,note});
+    D.visited[id]={time,n:items.length,checked:closed};});
+  D.queue=S.offline?D.queue+1:0;persist();S.lang=savedLang;closeSheet();S.tab='today';S.stack=[];S.screen='home';render(true);
+}
+
+/* ───────────────── Events ───────────────── */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  if(el.dataset.act==='closesheet'&&e.target.closest('[data-stop]')&&!e.target.closest('button[data-act="closesheet"]'))return;
+  const a=el.dataset.act,id=el.dataset.id,v=el.dataset.v;
+  switch(a){
+    case 'tab':tab(v);break;
+    case 'back':back();break;
+    case 'brief':
+      if(S.screen==='saved'){S.stack=[{screen:'home',sid:null}];S.screen='brief';S.sid=id}else go('brief',{sid:id});
+      S.note='';S.check={};S.draft=null;S.typing=false;render(true);break;
+    case 'history':stopRec(true);go('history',{sid:id});break;
+    case 'observe':go('observe');break;
+    case 'lang':S.lang=v;if(rec.on){stopRec(true)}render();break;
+    case 'rec':rec.on?stopRec():startRec();break;
+    case 'typing':stopRec(true);S.typing=!S.typing;render();if(S.typing){const t=document.getElementById('note');t&&t.focus()}break;
+    case 'structure':if(canDraft())structure();break;
+    case 'skipdraft':skipDraft();break;
+    case 'redraft':S.screen='observe';structure(true);break;
+    case 'fcheck':S.check[id]=S.check[id]===v?undefined:v;$app.querySelectorAll(`[data-act="fcheck"][data-id="${id}"]`).forEach(b=>b.setAttribute('aria-pressed',String(S.check[id]===b.dataset.v)));break;
+    case 'addact':S.draft.actions.push({do:'',how:''});render();{const t=document.getElementById('f-do-'+(S.draft.actions.length-1));t&&t.focus()}break;
+    case 'rmact':S.draft.actions.splice(+el.dataset.k,1);if(!S.draft.actions.length)S.draft.actions.push({do:'',how:''});render();break;
+    case 'save':saveVisit();break;
+    case 'copy':copyText();break;
+    case 'editpat':{if(S.editing[id]){const p=PATTERNS.find(x=>x.id===id);const h=document.getElementById('pt-'+id),b=document.getElementById('pb-'+id);if(h)p.title=h.textContent.trim()||p.title;if(b)p.body=b.textContent.trim()||p.body;delete S.editing[id]}else S.editing[id]=true;render();if(S.editing[id]){const b=document.getElementById('pb-'+id);b&&b.focus()}break}
+    case 'sheet':openSheet();break;
+    case 'closesheet':closeSheet();break;
+    case 'offline':S.offline=!S.offline;el.setAttribute('aria-checked',String(S.offline));document.querySelectorAll('[data-sync]').forEach(x=>{x.outerHTML=syncChip()});renderSide();if(S.sheet){const t=$ov.querySelector('.toggle');t&&t.setAttribute('aria-checked',String(S.offline))}scheduleSync();break;
+    case 'finishday':finishDay();break;
+    case 'reset':try{localStorage.removeItem(KEY)}catch(_){}D=seed();S.stack=[];S.tab='today';S.screen='home';S.note='';S.check={};S.draft=null;closeSheet();render(true);break;
+  }
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='note'){S.note=t.value;const b=document.getElementById('draftbtn');if(b)b.disabled=!canDraft();return}
+  if(t.id==='search'){S.q=t.value;const l=document.getElementById('slist');if(l)l.innerHTML=schoolRows();return}
+  const f=t.dataset&&t.dataset.f;if(!f||!S.draft)return;
+  grow(t);
+  if(f==='strength')S.draft.strength=t.value;
+  else if(f==='summary')S.draft.summary=t.value;
+  else{const [kind,k]=f.split(':');if(S.draft.actions[+k])S.draft.actions[+k][kind]=t.value}
+  clearTimeout(toneTimers[f]);toneTimers[f]=setTimeout(()=>toneCheck(t),450);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sheet)closeSheet()});
+window.addEventListener('online',()=>{S.offline=false;render();scheduleSync()});
+window.addEventListener('offline',()=>{S.offline=true;render()});
+window.addEventListener('resize',()=>{if(S.screen==='observe'&&!rec.on)drawWave()});
+
+render(true);
+if(D.queue)scheduleSync();
+})();
+</script>
+<!--APP-END-->
