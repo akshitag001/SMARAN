@@ -8,6 +8,8 @@ import { copyToClipboard, feedbackText } from '../lib/feedbackText';
 import { useFlow } from '../lib/flow';
 import { useSync } from '../lib/sync';
 import { useData } from '../lib/useData';
+import { queuedVisits } from '../lib/visits';
+import { ThumbRow } from '../components/photos';
 
 export function Saved() {
   const { schoolId = '' } = useParams();
@@ -20,13 +22,13 @@ export function Saved() {
   const [toast, setToast] = useState('');
 
   if (flow.schoolId !== schoolId || !flow.saved) return <Navigate to={`/schools/${schoolId}`} replace />;
-  const { visit, closed } = flow.saved;
+  const { visit, closed, remindersAdded, remindersClosed } = flow.saved;
   const school = brief.data?.school;
   const n = visit.items.length;
   const d = parseDate(visit.date);
 
   // Next stop on today's route that isn't visited, counting visits kept on the phone.
-  const done = new Set([schoolId, ...queue.filter((e) => e.request.date === today).map((e) => e.request.schoolId)]);
+  const done = new Set([schoolId, ...queuedVisits(queue).filter((e) => e.request.date === today).map((e) => e.request.schoolId)]);
   const next = route.data?.stops.find((s) => !s.visit && !done.has(s.school.id));
 
   // Leave first, then forget the finished visit, so this screen never re-renders without it.
@@ -39,7 +41,7 @@ export function Saved() {
     const session = getSession();
     if (!school || !session || !flow.draft) return;
     const ok = await copyToClipboard(
-      feedbackText({ teacher: school.teacher, date: visit.date, draft: flow.draft, lang: flow.lang, mentor: session.mentor, cluster: session.cluster }),
+      feedbackText({ teacher: school.teacher, date: visit.date, draft: flow.draft, lang: flow.lang, session }),
     );
     setToast(ok ? 'Copied. Paste it into WhatsApp.' : 'Copy isn’t available here.');
     window.setTimeout(() => setToast(''), 3500);
@@ -65,6 +67,14 @@ export function Saved() {
             {n ? `${plural(n, 'suggestion')} ${n === 1 ? 'is' : 'are'} now` : 'This visit is now'} on {school?.name ?? 'the school'}’s record.{' '}
             {n ? `${n === 1 ? 'It' : 'They'} will come up at the next visit, whoever makes it.` : ''}
           </p>
+          {(remindersAdded > 0 || remindersClosed > 0 || visit.photos.length > 0) && (
+            <ul className="saved-extras">
+              {remindersAdded > 0 && <li>{plural(remindersAdded, 'reminder')} left for the next visit</li>}
+              {remindersClosed > 0 && <li>{plural(remindersClosed, 'earlier reminder')} closed</li>}
+              {visit.photos.length > 0 && <li>{plural(visit.photos.length, 'photo')} {visit.photos.length === 1 ? 'is' : 'are'} uploading in the background</li>}
+            </ul>
+          )}
+          <ThumbRow photos={visit.photos} />
           {closed.length > 0 && (
             <div className="sec">
               <h2>Closed from last visit</h2>

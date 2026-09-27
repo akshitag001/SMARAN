@@ -1,13 +1,14 @@
 import { config } from './config';
 import { openDb, isEmpty } from './db/connection';
-import { DEMO_LOGIN, seedDemo } from './db/seed';
+import { DEMO_PIN, DEMO_USERS, seedDemo } from './db/seed';
 import { createApp } from './app';
 import { aiStatus } from './ai/drafter';
 
 const db = openDb(config.dbPath);
 if (isEmpty(db)) {
   seedDemo(db);
-  console.log(`Loaded sample data. Sign in with ${DEMO_LOGIN.phone}, PIN ${DEMO_LOGIN.pin}.`);
+  console.log('Loaded sample data. Sign in with PIN ' + DEMO_PIN + ' as:');
+  for (const [role, u] of Object.entries(DEMO_USERS)) console.log(`  ${role.padEnd(8)} ${u.name.padEnd(16)} ${u.phone}`);
 }
 
 const app = createApp(db);

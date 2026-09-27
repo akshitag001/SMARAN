@@ -1,16 +1,17 @@
 import { Link } from 'react-router';
-import { isoDate, parseDate, MONTHS, WEEKDAYS, plural, shortDate, withoutHonorific, type RouteStop, type TodayResponse } from '@smaran/shared';
+import { isoDate, parseDate, MONTHS, WEEKDAYS, plural, shortDate, withoutHonorific, type Reminder, type RouteStop, type TodayResponse } from '@smaran/shared';
 import { Icon } from '../components/Icon';
 import { Loading, Problem, StaleNote, TabBar, TabHeader } from '../components/ui';
 import { useData } from '../lib/useData';
 import { useSync } from '../lib/sync';
 import type { OutboxEntry } from '../lib/outbox';
+import { queuedVisits } from '../lib/visits';
 
 /** Route stops, with visits saved on this phone but not yet synced counted as done. */
 function withQueuedVisits(stops: RouteStop[], queue: OutboxEntry[], date: string): RouteStop[] {
   return stops.map((s) => {
     if (s.visit) return s;
-    const q = queue.find((e) => e.request.schoolId === s.school.id && e.request.date === date);
+    const q = queuedVisits(queue).find((e) => e.request.schoolId === s.school.id && e.request.date === date);
     return q
       ? { ...s, visit: { time: q.request.time, savedCount: q.local.visit.items.length, checkedCount: q.local.closed.length } }
       : s;
@@ -34,7 +35,7 @@ export function Today() {
       <main>
         {data && (
           <div className="greet">
-            <h1>Namaste, {data.mentor.firstName}</h1>
+            <h1>Namaste, {data.user.firstName}</h1>
             <p>
               {WEEKDAYS[d.getDay()]}, {d.getDate()} {MONTHS[d.getMonth()]}.{' '}
               {allDone ? 'Your route is done for today.' : `${stops.length} schools on today’s route.`}
@@ -44,6 +45,12 @@ export function Today() {
         {loading && !data && <Loading />}
         {error != null && !data && <Problem error={error} onRetry={reload} />}
         <StaleNote show={fromCache} />
+        {data && stops.length === 0 && (
+          <div className="empty-note">
+            <b>No schools assigned to you yet</b>
+            <span>Your block coordinator assigns schools. They will appear here, with today’s route, once they do.</span>
+          </div>
+        )}
         {data && allDone && <EndOfDay stops={stops} queued={queue.length} />}
         {data && !allDone && (
           <>
@@ -55,7 +62,7 @@ export function Today() {
                   </b>{' '}
                   schools visited
                 </span>
-                <span>{data.cluster.name.replace('Jan Shiksha Kendra', 'JSK')}</span>
+                <span>{data.cluster?.name.replace('Jan Shiksha Kendra', 'JSK')}</span>
               </div>
               <div className="segs" aria-hidden="true">
                 {stops.map((s) => (
@@ -72,6 +79,7 @@ export function Today() {
             </section>
           </>
         )}
+        {data && data.reminders.length > 0 && <Reminders reminders={data.reminders} />}
       </main>
       <TabBar />
     </>
@@ -159,6 +167,32 @@ function EndOfDay({ stops, queued }: { stops: RouteStop[]; queued: number }) {
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+/** Reminders waiting at the CRP's schools, from their own notes, the previous CRP or the coordinator. */
+function Reminders({ reminders }: { reminders: Reminder[] }) {
+  return (
+    <section className="sec" aria-label="Reminders">
+      <h2>Reminders at your schools</h2>
+      <ul className="rem-list">
+        {reminders.map((r) => (
+          <li key={r.id}>
+            <Link className="rem" to={`/visit/${r.schoolId}`}>
+              <span className="rem-flag" aria-hidden="true">
+                <Icon name="flag" small />
+              </span>
+              <span>
+                <span className="rem-text">{r.text}</span>
+                <small>
+                  <span className="name">{r.schoolName}</span>, from {r.createdByName}, {shortDate(r.createdOn)}
+                </small>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

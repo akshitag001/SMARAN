@@ -3,6 +3,21 @@ export * from './themes';
 export * from './localDrafter';
 export * from './tone';
 export * from './dates';
+export * from './reminders';
+
+export const ROLE_LABEL = {
+  crp: 'Cluster Resource Person',
+  brc: 'Block Resource Coordinator',
+  teacher: 'Teacher',
+} as const;
+
+export const ROLE_SHORT = { crp: 'CRP', brc: 'BRC', teacher: 'Teacher' } as const;
+
+export const RESPONSE_LABEL = {
+  trying: 'Trying it',
+  done: 'Done',
+  help: 'Need help',
+} as const;
 
 export const STATE_LABEL = {
   done: 'Done',

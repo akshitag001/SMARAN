@@ -1,11 +1,13 @@
 import { Link, useNavigate, useParams } from 'react-router';
 import { STATE_LABEL, daysBetween, isoDate, longDate, plural, relativeDays, shortDate, type BriefResponse } from '@smaran/shared';
 import { Icon } from '../components/Icon';
-import { Loading, Mark, Problem, StaleNote, Steps, TopBar } from '../components/ui';
+import { ThumbRow } from '../components/photos';
+import { Loading, Mark, Problem, StaleNote, Steps, TeacherReplies, TopBar } from '../components/ui';
 import { getSession } from '../lib/api';
 import { useFlow } from '../lib/flow';
 import { useData } from '../lib/useData';
 import { useSync } from '../lib/sync';
+import { queuedVisits } from '../lib/visits';
 
 export function Brief() {
   const { schoolId = '' } = useParams();
@@ -13,9 +15,10 @@ export function Brief() {
   const { data, error, loading, fromCache, reload } = useData<BriefResponse>(`/schools/${schoolId}/brief?date=${today}`);
   const { flow, begin } = useFlow();
   const navigate = useNavigate();
-  const me = getSession()?.mentor;
+  const me = getSession()?.user;
   const { queue } = useSync();
-  const visitedToday = Boolean(data?.visitedToday) || queue.some((e) => e.request.schoolId === schoolId && e.request.date === today);
+  const visitedToday =
+    Boolean(data?.visitedToday) || queuedVisits(queue).some((e) => e.request.schoolId === schoolId && e.request.date === today);
 
   const start = () => {
     begin(schoolId);
@@ -24,11 +27,14 @@ export function Brief() {
 
   const last = data?.lastVisit;
   const pending = last?.items.filter((i) => i.state === 'pending') ?? [];
+  const toLookFor = pending.length + (data?.reminders.length ?? 0);
   const resuming = flow.schoolId === schoolId && !flow.saved && flow.note.trim().length > 0;
+  const handover = data?.handover;
+  const recentHandover = handover && handover.toId === me?.id && daysBetween(handover.date, today) <= 90;
 
   return (
     <>
-      <TopBar back="Today" backTo="/" right={<Link className="linkbtn" to={`/schools/${schoolId}`}>History</Link>} />
+      <TopBar back="Back" right={<Link className="linkbtn" to={`/schools/${schoolId}`}>History</Link>} />
       <main>
         <Steps current={1} />
         {loading && !data && <Loading />}
@@ -52,12 +58,45 @@ export function Brief() {
                   {data.school.classLabel}, {data.school.subject}
                 </span>
               </div>
-              {pending.length > 0 && (
+              {toLookFor > 0 && (
                 <div style={{ marginTop: 10 }}>
-                  <span className="chip chip-look">{plural(pending.length, 'thing')} to look for today</span>
+                  <span className="chip chip-look">{plural(toLookFor, 'thing')} to look for today</span>
                 </div>
               )}
             </header>
+
+            {recentHandover && (
+              <details className="handover-note">
+                <summary>
+                  <Icon name="swap" small />
+                  <span>
+                    Handed over to you by <b>{handover.fromName}</b>, {shortDate(handover.date, today)}
+                  </span>
+                </summary>
+                {handover.note ? <p>“{handover.note}”</p> : <p className="muted">No handover note.</p>}
+              </details>
+            )}
+
+            {data.reminders.length > 0 && (
+              <section className="sec">
+                <h2>Reminders for this visit</h2>
+                <ul className="items">
+                  {data.reminders.map((r) => (
+                    <li key={r.id}>
+                      <span className="rem-flag" aria-hidden="true">
+                        <Icon name="flag" small />
+                      </span>
+                      <div>
+                        <p>{r.text}</p>
+                        <p className="st">
+                          From {r.createdById === me?.id ? 'you' : r.createdByName}, {shortDate(r.createdOn, today)}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {!last ? (
               <div className="empty-note">
@@ -74,6 +113,7 @@ export function Brief() {
                     {last.mentorId !== me?.id && <span className="rot">another CRP</span>}
                   </p>
                   <p className="summary">{last.summary}</p>
+                  <ThumbRow photos={last.photos} />
                 </section>
                 <section className="sec">
                   <h2>Suggested last time</h2>
@@ -88,6 +128,7 @@ export function Brief() {
                               ? 'Not checked yet. Look for this today.'
                               : `${STATE_LABEL[i.state]}${i.checkedOn ? `, marked ${shortDate(i.checkedOn, today)}` : ''}${i.note ? `. ${i.note}` : ''}`}
                           </p>
+                          <TeacherReplies responses={i.responses} />
                         </div>
                       </li>
                     ))}

@@ -1,3 +1,4 @@
+import { extractReminders } from './reminders';
 import { THEMES } from './themes';
 import type { Draft, Lang } from './types';
 
@@ -33,7 +34,7 @@ export function localDraft(note: string, lang: Lang): Draft {
     .split(/(?<=[.!?।])\s+/)
     .map((s) => s.trim())
     .filter(Boolean);
-  const good = sentences.filter((s) => POSITIVE.test(s) && !NEGATIVE.test(s)).slice(0, 2);
+  const good = sentences.filter((s) => POSITIVE.test(s) && !NEGATIVE.test(s) && extractReminders(s).length === 0).slice(0, 2);
   const strength = good.length ? (lang === 'hi' ? 'मैंने देखा: ' : 'I noticed: ') + good.join(' ') : '';
 
   const topic = (sentences[0] ?? '').replace(/[.।]$/, '');
@@ -41,7 +42,7 @@ export function localDraft(note: string, lang: Lang): Draft {
   const suggested = actions.map((a) => lowerFirst(a.do.replace(/[.।]$/, ''))).join('; ');
   const summary = lead + (lang === 'hi' ? 'सुझाव: ' : 'Suggested: ') + suggested + '.';
 
-  return { strength, actions, summary: upperFirst(summary) };
+  return { strength, actions, summary: upperFirst(summary), reminders: extractReminders(text) };
 }
 
 const upperFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifySuggestion, localDraft, strengthThemes, toneCheck, addDays, daysBetween } from './index';
+import { classifySuggestion, extractReminders, localDraft, strengthThemes, toneCheck, addDays, daysBetween } from './index';
 
 describe('localDraft', () => {
   it('picks themes in the order the mentor mentioned them', () => {
@@ -57,5 +57,22 @@ describe('dates', () => {
   it('adds days across months', () => {
     expect(addDays('2026-09-27', -75)).toBe('2026-07-14');
     expect(daysBetween('2026-07-14', '2026-09-27')).toBe(75);
+  });
+});
+
+describe('extractReminders', () => {
+  it('pulls next-time reminders out of a note', () => {
+    expect(
+      extractReminders('Good lesson on fractions. Next time check if the library register is being filled. Remind me to ask about the hand pump.'),
+    ).toEqual(['Check if the library register is being filled', 'Ask about the hand pump']);
+  });
+  it('understands Hindi', () => {
+    expect(extractReminders('बच्चे ध्यान से सुन रहे थे। अगली बार पुस्तकालय रजिस्टर देखना है।')).toEqual(['पुस्तकालय रजिस्टर देखना है']);
+  });
+  it('ignores notes without reminders', () => {
+    expect(extractReminders('Only the front row answered.')).toEqual([]);
+  });
+  it('is part of the on-device draft', () => {
+    expect(localDraft('Examples were rushed. Next time I should see the slates.', 'en').reminders).toEqual(['See the slates']);
   });
 });

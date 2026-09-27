@@ -14,6 +14,8 @@ type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 export const config = {
   port: Number(process.env.PORT ?? 8787),
   dbPath: process.env.SMARAN_DB ?? path.join(root, 'data', 'smaran.db'),
+  photoDir: process.env.SMARAN_PHOTOS ?? path.join(root, 'data', 'photos'),
+  maxPhotoBytes: 6 * 1024 * 1024,
   sessionSecret: process.env.SESSION_SECRET ?? 'dev-only-secret-change-me',
   sessionDays: 30,
   /** Set SMARAN_AI=off to always use the on-device drafter. */

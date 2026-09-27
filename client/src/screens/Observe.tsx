@@ -4,6 +4,7 @@ import { isoDate, type BriefResponse, type Lang } from '@smaran/shared';
 import { Icon } from '../components/Icon';
 import { Steps, TopBar } from '../components/ui';
 import { Waveform } from '../components/Waveform';
+import { PhotoCapture } from '../components/photos';
 import { useFlow } from '../lib/flow';
 import { useSpeech } from '../lib/speech';
 import { useBufferedValue } from '../lib/useBufferedValue';
@@ -175,6 +176,8 @@ export function Observe() {
             </button>
           </div>
         )}
+
+        <PhotoCapture photos={flow.photos} onChange={(photos) => update({ photos })} lang={flow.lang} />
       </main>
       <footer className="bar">
         <button className="btn btn-primary" disabled={!canDraft} onClick={() => navigate(`/visit/${schoolId}/drafting`)}>

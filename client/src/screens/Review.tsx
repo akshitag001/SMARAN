@@ -2,9 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState, type TextareaHTMLAttribut
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { STATE_LABEL, isoDate, shortDate, toneCheck, type BriefResponse, type CheckedState, type Draft } from '@smaran/shared';
 import { Icon } from '../components/Icon';
-import { Loading, Mark, Problem, Steps, TopBar } from '../components/ui';
+import { Loading, Mark, Problem, Steps, TeacherReplies, TopBar } from '../components/ui';
 import { getSession, problemText } from '../lib/api';
-import { copyToClipboard, feedbackText } from '../lib/feedbackText';
+import { copyToClipboard, feedbackText, spokenFeedback } from '../lib/feedbackText';
+import { newClientId } from '../lib/api';
+import { ThumbRow } from '../components/photos';
+import { ReadAloudButton, VoiceField } from '../components/voice';
 import { useFlow } from '../lib/flow';
 import { useBufferedValue } from '../lib/useBufferedValue';
 import { useData } from '../lib/useData';
@@ -25,6 +28,7 @@ export function Review() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [toast, setToast] = useState('');
+  const [newReminder, setNewReminder] = useState('');
   const focusAction = useRef<number | null>(null);
 
   if (flow.schoolId !== schoolId) return <Navigate to={`/visit/${schoolId}`} replace />;
@@ -47,12 +51,26 @@ export function Review() {
     update({ checks });
   };
 
+  const setReminderUpdate = (id: string, v: 'done' | 'dropped' | null) => {
+    const reminderUpdates = { ...flow.reminderUpdates };
+    if (v) reminderUpdates[id] = v;
+    else delete reminderUpdates[id];
+    update({ reminderUpdates });
+  };
+
+  const addReminder = () => {
+    const text = newReminder.trim();
+    if (text.length < 3) return;
+    update({ reminders: [...flow.reminders, { clientId: newClientId(), text, source: 'added' }] });
+    setNewReminder('');
+  };
+
   const save = async () => {
     if (!school || !session) return;
     setSaving(true);
     setSaveError(null);
     try {
-      const saved = await saveVisit(flow, school, lastVisit, session.mentor);
+      const saved = await saveVisit(flow, school, lastVisit, session.user);
       update({ saved });
       navigate(`/visit/${schoolId}/saved`, { replace: true });
     } catch (err) {
@@ -64,7 +82,7 @@ export function Review() {
   const copy = async () => {
     if (!school || !session) return;
     const ok = await copyToClipboard(
-      feedbackText({ teacher: school.teacher, date: isoDate(), draft, lang: flow.lang, mentor: session.mentor, cluster: session.cluster }),
+      feedbackText({ teacher: school.teacher, date: isoDate(), draft, lang: flow.lang, session }),
     );
     setToast(ok ? 'Copied. Paste it into WhatsApp.' : 'Copy isn’t available here. Select the text in the draft instead.');
     window.setTimeout(() => setToast(''), 3500);
@@ -95,12 +113,36 @@ export function Review() {
             {pending.map((i) => (
               <div className="fitem" key={i.id}>
                 <p>{i.text}</p>
+                <TeacherReplies responses={i.responses} />
                 <div className="choice" role="group" aria-label={i.text}>
                   {(['done', 'partly', 'notyet'] as const).map((v) => (
                     <button key={v} data-v={v} aria-pressed={flow.checks[i.id] === v} onClick={() => toggleCheck(i.id, v)}>
                       {STATE_LABEL[v]}
                     </button>
                   ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {(brief.data?.reminders.length ?? 0) > 0 && (
+          <section className="fcheck">
+            <h2>Reminders for this visit</h2>
+            {brief.data!.reminders.map((r) => (
+              <div className="fitem" key={r.id}>
+                <p>{r.text}</p>
+                <p className="hint">From {r.createdByName}</p>
+                <div className="choice" role="group" aria-label={r.text}>
+                  <button data-v="done" aria-pressed={flow.reminderUpdates[r.id] === 'done'} onClick={() => setReminderUpdate(r.id, 'done')}>
+                    Done
+                  </button>
+                  <button data-v="partly" aria-pressed={!flow.reminderUpdates[r.id]} onClick={() => setReminderUpdate(r.id, null)}>
+                    Keep for later
+                  </button>
+                  <button data-v="notyet" aria-pressed={flow.reminderUpdates[r.id] === 'dropped'} onClick={() => setReminderUpdate(r.id, 'dropped')}>
+                    Not needed
+                  </button>
                 </div>
               </div>
             ))}
@@ -190,10 +232,46 @@ export function Review() {
             <Icon name="copy" small />
             Copy for WhatsApp
           </button>
+          {school && <ReadAloudButton text={spokenFeedback(school.teacher, draft, flow.lang)} lang={flow.lang} />}
         </div>
         <p className="toast" aria-live="polite">
           {toast}
         </p>
+        <section className="sec" aria-label="Reminders for next time">
+          <h2>Reminders for next time</h2>
+          <p className="hint">For whoever visits next, even if it isn’t you. The teacher doesn’t see these.</p>
+          {flow.reminders.length > 0 && (
+            <ul className="rem-list">
+              {flow.reminders.map((r) => (
+                <li key={r.clientId} className="rem">
+                  <span className="rem-flag" aria-hidden="true">
+                    <Icon name="flag" small />
+                  </span>
+                  <span>
+                    <span className="rem-text">{r.text}</span>
+                    {r.source === 'note' && <small>Found in your note</small>}
+                  </span>
+                  <button className="act-x" aria-label={`Remove reminder: ${r.text}`} onClick={() => update({ reminders: flow.reminders.filter((x) => x.clientId !== r.clientId) })}>
+                    <Icon name="x" small />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <VoiceField id="new-reminder" label="Add a reminder" lang={flow.lang} rows={1} value={newReminder} onChange={setNewReminder} placeholder="e.g. Check the library register" />
+          <button className="add" disabled={newReminder.trim().length < 3} onClick={addReminder}>
+            <Icon name="plus" small />
+            Add reminder
+          </button>
+        </section>
+
+        {flow.photos.length > 0 && (
+          <section className="sec" aria-label="Photos">
+            <h2>{flow.photos.length === 1 ? '1 photo' : `${flow.photos.length} photos`} with this visit</h2>
+            <ThumbRow photos={flow.photos.map((p) => ({ id: p.clientId, caption: p.caption, takenAt: p.takenAt, local: true }))} />
+          </section>
+        )}
+
         <details className="raw">
           <summary>Your original note</summary>
           <p>{flow.note}</p>

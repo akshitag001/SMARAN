@@ -1,6 +1,7 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { config } from './config';
+import type { Role, User } from '@smaran/shared';
 import type { Repo } from './repo';
 
 export function hashPin(pin: string): string {
@@ -40,17 +41,29 @@ export function readToken(token: string): string | null {
   }
 }
 
-/** Rejects requests without a valid session; puts the mentor on res.locals.mentor. */
-export function requireMentor(repo: Repo) {
+/** Rejects requests without a valid session; puts the signed-in person on res.locals.user. */
+export function requireUser(repo: Repo) {
   return (req: Request, res: Response, next: NextFunction) => {
     const header = req.get('authorization') ?? '';
     const id = header.startsWith('Bearer ') ? readToken(header.slice(7)) : null;
-    const mentor = id ? repo.mentor(id) : null;
-    if (!mentor) {
+    const user = id ? repo.user(id) : null;
+    if (!user || !user.active) {
       res.status(401).json({ error: 'Your session has ended. Sign in again.' });
       return;
     }
-    res.locals.mentor = mentor;
+    res.locals.user = user;
+    next();
+  };
+}
+
+/** Allows only the given roles through. */
+export function allow(...roles: Role[]) {
+  return (_req: Request, res: Response, next: NextFunction) => {
+    const user = res.locals.user as User;
+    if (!roles.includes(user.role)) {
+      res.status(403).json({ error: 'Your role doesn’t have access to this.' });
+      return;
+    }
     next();
   };
 }

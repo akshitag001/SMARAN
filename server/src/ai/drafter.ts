@@ -15,6 +15,9 @@ const DraftSchema = z.object({
     )
     .describe('One or two suggestions, most important first.'),
   summary: z.string().describe('One line for the school record, third person, under 22 words.'),
+  reminders: z
+    .array(z.string())
+    .describe('Things the mentor said to check or do at the next visit, each as a short instruction. Empty if none.'),
 });
 
 // Stable instructions; the per-visit context goes in the user turn.
@@ -25,6 +28,7 @@ Write the way an experienced, respected colleague talks: warm, plain and specifi
 - strength: one or two sentences on something specific that worked, taken only from the observation. If the observation shows progress on an earlier suggestion, say so here. If nothing positive was noted, return an empty string. Never invent what the mentor did not see.
 - actions: one or two suggestions, the most important first. "do" is a single classroom action the teacher could try tomorrow. "how" explains exactly how, for a government school classroom: large classes, slates, a blackboard, the FLN kit.
 - summary: one line for the school's visit record, in third person, without pronouns.
+- reminders: anything the mentor said to check or do at the next visit ("next time…", "remind me to…", "अगली बार…"), each rewritten as a short instruction for whoever visits next, in the same language. These are notes for the mentor, not feedback for the teacher. Return an empty list if there are none.
 
 The observation may mix Hindi and English and may contain speech-to-text errors; read it for meaning.`;
 
@@ -98,7 +102,8 @@ export async function draftWithClaude(ctx: DraftContext, signal?: AbortSignal): 
       .filter((a) => a.do)
       .slice(0, 3);
     if (!actions.length) return null;
-    return { strength: out.strength.trim(), actions, summary: out.summary.trim() };
+    const reminders = out.reminders.map((r) => r.trim()).filter(Boolean).slice(0, 5);
+    return { strength: out.strength.trim(), actions, summary: out.summary.trim(), reminders };
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) {
       disabledReason = 'Claude credentials were rejected';

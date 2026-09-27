@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { isOffline, isWorkingOffline, setWorkingOffline } from './api';
+import { cachedGet, isOffline, isWorkingOffline, setWorkingOffline } from './api';
 import { flushOutbox, listOutbox, onOutboxChange, type OutboxEntry } from './outbox';
 
 interface SyncState {
@@ -9,6 +9,9 @@ interface SyncState {
   queue: OutboxEntry[];
   syncing: boolean;
   syncNow: () => void;
+  /** Unread inbox items, refreshed while there is signal. */
+  unread: number;
+  refreshUnread: () => void;
 }
 
 const SyncContext = createContext<SyncState | null>(null);
@@ -18,6 +21,14 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const [workOffline, setWork] = useState(isWorkingOffline());
   const [queue, setQueue] = useState<OutboxEntry[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [unread, setUnread] = useState(0);
+
+  const refreshUnread = useCallback(() => {
+    cachedGet<{ unread: number }>('/inbox/unread').then(
+      ({ data }) => setUnread(data.unread),
+      () => {},
+    );
+  }, []);
 
   const syncNow = useCallback(() => {
     if (isOffline()) return;
@@ -34,15 +45,22 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
-    const timer = window.setInterval(syncNow, 30_000);
+    const timer = window.setInterval(() => {
+      syncNow();
+      refreshUnread();
+    }, 30_000);
+    const onInbox = () => refreshUnread();
+    window.addEventListener('smaran:inbox', onInbox);
     syncNow();
+    refreshUnread();
     return () => {
       off();
       window.removeEventListener('online', update);
       window.removeEventListener('offline', update);
       window.clearInterval(timer);
+      window.removeEventListener('smaran:inbox', onInbox);
     };
-  }, [syncNow]);
+  }, [syncNow, refreshUnread]);
 
   // Anything newly queued is sent straight away when there is signal.
   useEffect(() => {
@@ -60,7 +78,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <SyncContext.Provider value={{ offline, workOffline, setWorkOffline, queue, syncing, syncNow }}>
+    <SyncContext.Provider value={{ offline, workOffline, setWorkOffline, queue, syncing, syncNow, unread, refreshUnread }}>
       {children}
     </SyncContext.Provider>
   );

@@ -2,6 +2,11 @@ import { useState, type FormEvent } from 'react';
 import { login, problemText, setSession } from '../lib/api';
 
 const SHOW_DEMO_HINT = import.meta.env.VITE_DEMO_HINT !== 'false';
+const DEMO = [
+  { name: 'Suresh Rathore', role: 'CRP, visits schools', phone: '9876543210' },
+  { name: 'Meera Joshi', role: 'Block Resource Coordinator', phone: '9876500022' },
+  { name: 'Kavita Yadav', role: 'Teacher, GPS Ratanpur', phone: '9876500033' },
+];
 
 export function Login({ onSignedIn }: { onSignedIn: () => void }) {
   const [phone, setPhone] = useState('');
@@ -29,7 +34,7 @@ export function Login({ onSignedIn }: { onSignedIn: () => void }) {
       </p>
       <div>
         <h1>Sign in</h1>
-        <p className="lead">Use the mobile number registered with your Jan Shiksha Kendra and your PIN.</p>
+        <p className="lead">Use the mobile number your block office registered, and your PIN. CRPs, block coordinators and teachers all sign in here.</p>
       </div>
       <form className="form" onSubmit={submit}>
         <div className="field">
@@ -50,9 +55,16 @@ export function Login({ onSignedIn }: { onSignedIn: () => void }) {
         </button>
       </form>
       {SHOW_DEMO_HINT && (
-        <p className="hint">
-          Sample data: sign in as Suresh Rathore with <b>98765 43210</b> and PIN <b>1234</b>.
-        </p>
+        <div className="demo-logins">
+          <p className="hint">Sample accounts, all with PIN <b>1234</b>. Tap one to fill it in.</p>
+          {DEMO.map((d) => (
+            <button key={d.phone} type="button" className="demo-login" onClick={() => (setPhone(d.phone), setPin('1234'))}>
+              <b>{d.name}</b>
+              <span>{d.role}</span>
+              <span className="num">{d.phone.replace(/^(\d{5})(\d{5})$/, '$1 $2')}</span>
+            </button>
+          ))}
+        </div>
       )}
     </main>
   );

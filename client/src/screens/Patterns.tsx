@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { isoDate, type Pattern, type PatternsResponse } from '@smaran/shared';
 import { Icon } from '../components/Icon';
 import { Loading, Problem, StaleNote, TabBar, TabHeader } from '../components/ui';
-import { problemText, put } from '../lib/api';
+import { getSession, problemText, put } from '../lib/api';
 import { useData } from '../lib/useData';
 import { useSync } from '../lib/sync';
 
 /** Patterns across the cluster, in plain language, for the Block Resource Coordinator. */
 export function Patterns() {
-  const { data, error, loading, fromCache, reload } = useData<PatternsResponse>(`/patterns?date=${isoDate()}`);
+  const [cluster, setCluster] = useState<string | null>(null);
+  const query = `date=${isoDate()}${cluster ? `&cluster=${cluster}` : ''}`;
+  const { data, error, loading, fromCache, reload } = useData<PatternsResponse>(`/patterns?${query}`);
   const { offline } = useSync();
+  const isBrc = getSession()?.user.role === 'brc';
 
   return (
     <>
@@ -21,11 +24,23 @@ export function Patterns() {
         {data && (
           <>
             <div className="intro">
-              <h1>Across {data.cluster.name.replace('Jan Shiksha Kendra ', '')} cluster</h1>
+              <h1>Across {data.scope.kind === 'cluster' ? `${data.scope.name.replace('Jan Shiksha Kendra ', '')} cluster` : data.scope.name}</h1>
               <p>
                 From {data.visitCount} visit notes in the last {data.periodDays} days across {data.schools.length} schools, compared with the{' '}
                 {data.periodDays} days before. Edit the wording before it goes to the Block Education Officer.
               </p>
+            </div>
+            <div className="scope" role="group" aria-label="Show patterns for">
+              {isBrc && (
+                <button aria-pressed={data.scope.kind === 'block'} onClick={() => setCluster(null)}>
+                  Whole block
+                </button>
+              )}
+              {data.clusters.map((c) => (
+                <button key={c.id} aria-pressed={data.scope.kind === 'cluster' && data.scope.id === c.id} onClick={() => setCluster(c.id)}>
+                  {c.name.replace('Jan Shiksha Kendra ', '')}
+                </button>
+              ))}
             </div>
             {data.patterns.length === 0 ? (
               <div className="empty-note">
@@ -35,7 +50,7 @@ export function Patterns() {
             ) : (
               <ul className="pats">
                 {data.patterns.map((p) => (
-                  <PatternItem key={p.theme} pattern={p} schools={data.schools} offline={offline} onSaved={reload} />
+                  <PatternItem key={`${data.scope.id}-${p.theme}`} pattern={p} schools={data.schools} offline={offline} onSaved={reload} scopeQuery={cluster ? `?cluster=${cluster}` : ''} />
                 ))}
               </ul>
             )}
@@ -52,7 +67,9 @@ function PatternItem({
   schools,
   offline,
   onSaved,
+  scopeQuery,
 }: {
+  scopeQuery: string;
   pattern: Pattern;
   schools: { id: string; name: string }[];
   offline: boolean;
@@ -66,7 +83,7 @@ function PatternItem({
 
   const save = async () => {
     try {
-      await put(`/patterns/${p.theme}`, { title, body });
+      await put(`/patterns/${p.theme}${scopeQuery}`, { title, body });
       setEditing(false);
       setProblem(null);
       onSaved();

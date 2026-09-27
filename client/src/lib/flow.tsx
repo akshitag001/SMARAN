@@ -16,10 +16,28 @@ export interface VisitFlow {
   draft: Draft | null;
   source: DraftSource | null;
   checks: Record<string, CheckedState>;
+  /** Photos taken during this visit; the pictures wait in IndexedDB under their clientId. */
+  photos: { clientId: string; caption: string; takenAt: string }[];
+  /** Reminders for the next visit: found in the note, spoken or typed. */
+  reminders: { clientId: string; text: string; source: 'note' | 'added' }[];
+  /** Earlier reminders dealt with at this visit. */
+  reminderUpdates: Record<string, 'done' | 'dropped'>;
   saved: (SavedVisitResponse & { queued: boolean }) | null;
 }
 
-const EMPTY: VisitFlow = { schoolId: null, note: '', lang: 'en', typing: false, draft: null, source: null, checks: {}, saved: null };
+const EMPTY: VisitFlow = {
+  schoolId: null,
+  note: '',
+  lang: 'en',
+  typing: false,
+  draft: null,
+  source: null,
+  checks: {},
+  photos: [],
+  reminders: [],
+  reminderUpdates: {},
+  saved: null,
+};
 const KEY = 'smaran.visitInProgress';
 
 function load(): VisitFlow {
