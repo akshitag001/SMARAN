@@ -1,0 +1,13 @@
+{
+  "name": "Smaran",
+  "short_name": "Smaran",
+  "description": "Classroom observation and follow-up for school mentors.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F5F4",
+  "theme_color": "#2A3F9D",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
